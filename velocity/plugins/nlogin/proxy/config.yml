@@ -42,7 +42,7 @@ backend:
   # Defines whether the proxy should check if authentication servers are properly configured.
   # - If you are using a server without nLogin (e.g. limbo servers not based on Spigot)
   #   it is recommended to disable this option.
-  check-ack-message: true
+  check-ack-message: false
 
 #     __          _ _               _
 #    /__\ ___  __| (_)_ __ ___  ___| |_
