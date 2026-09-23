@@ -77,21 +77,16 @@ sample-players-in-ping = false
 enable-player-address-logging = true
 
 [servers]
-# Configure your servers here. Each key represents the server's name, and the value
-# represents the IP address of the server to connect to.
-auth = "127.0.0.1:25566"
+# Classroom gameplay server. Students connect to Velocity on 25567 and are sent
+# directly to Paper on the internal port 25565.
 survival = "127.0.0.1:25565"
 
-# In what order we should try servers when a player logs in or is kicked from a server.
+# Send every player directly into the classroom world.
 try = [
-    "auth"
+    "survival"
 ]
 
 [forced-hosts]
-# Configure your forced hosts here.
-"auth.example.com" = [
-    "auth"
-]
 
 [advanced]
 # How large a Minecraft packet has to be before we compress it. Setting this to zero will
