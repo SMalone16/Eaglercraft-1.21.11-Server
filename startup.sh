@@ -44,19 +44,14 @@ if [ ! -f "$PAPER_JAR" ]; then
     -H "User-Agent: $PAPER_USER_AGENT" \
     "https://fill.papermc.io/v3/projects/paper/versions/$PAPER_VERSION/builds")"
 
-  if command -v python3 >/dev/null 2>&1; then
-    PAPER_URL="$(printf '%s' "$BUILDS_JSON" | \
-      python3 -c 'import json,sys; builds=json.load(sys.stdin); stable=next((b for b in builds if b.get("channel")=="STABLE"), None); print(stable["downloads"]["server:default"]["url"] if stable else "")')"
-  elif command -v jq >/dev/null 2>&1; then
-    PAPER_URL="$(printf '%s' "$BUILDS_JSON" | \
-      jq -r 'first(.[] | select(.channel == "STABLE") | .downloads."server:default".url) // empty')"
-  else
-    echo "Installing jq so the Paper download response can be read..."
+  if ! command -v jq >/dev/null 2>&1; then
+    echo "jq is not installed. Installing it..."
     sudo apt-get update -qq
     sudo apt-get install -y jq
-    PAPER_URL="$(printf '%s' "$BUILDS_JSON" | \
-      jq -r 'first(.[] | select(.channel == "STABLE") | .downloads."server:default".url) // empty')"
   fi
+
+  PAPER_URL="$(printf '%s' "$BUILDS_JSON" | \
+    jq -r 'first(.[] | select(.channel == "STABLE") | .downloads."server:default".url) // empty')"
 
   if [ -z "$PAPER_URL" ]; then
     echo "ERROR: Could not find a stable Paper $PAPER_VERSION download."
