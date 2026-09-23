@@ -1,0 +1,11 @@
+{
+  "name": "Eaglercraft Classroom Server",
+  "image": "mcr.microsoft.com/devcontainers/java:1-21-bookworm",
+  "forwardPorts": [25567],
+  "portsAttributes": {
+    "25567": {
+      "label": "Eaglercraft Classroom Server",
+      "onAutoForward": "notify"
+    }
+  }
+}
