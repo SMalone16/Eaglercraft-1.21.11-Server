@@ -83,7 +83,7 @@ NanoLimbo login server        port 25566
 Paper 1.21.11 world server    port 25565
 ```
 
-On the first launch, the script also downloads the current NanoLimbo server JAR if it is missing.
+On the first launch, the script downloads the current NanoLimbo server JAR and the latest stable official Paper 1.21.11 runnable server JAR if they are missing.
 
 Wait until Paper finishes starting and the terminal settles into normal server messages.
 
@@ -338,9 +338,20 @@ Also make sure the terminal does not show a crash or Java error.
 
 ---
 
+## Paper reports `NoClassDefFoundError` or `joptsimple/OptionException`
+
+Pull the latest version of this repository and restart. An earlier classroom startup script incorrectly launched Paper's internal version JAR instead of Paper's runnable server JAR. The current script downloads and launches the official stable Paper 1.21.11 server JAR automatically.
+
+```bash
+git pull
+bash startup.sh
+```
+
+---
+
 ## The startup script says Java is missing
 
-The included Codespaces configuration uses Java 21.
+The included Codespaces configuration uses Java 21, which Paper 1.21.11 supports.
 
 If you created the Codespace **before** this repository gained its `.devcontainer` configuration, rebuild the container or create a fresh Codespace from the current repository.
 
