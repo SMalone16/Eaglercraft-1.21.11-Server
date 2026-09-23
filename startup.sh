@@ -3,7 +3,6 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VELOCITY_JAR="$ROOT_DIR/velocity/velocity-3.5.0-all.jar"
-LIMBO_JAR="$ROOT_DIR/limbo/server.jar"
 PAPER_JAR="$ROOT_DIR/server/server.jar"
 
 PAPER_VERSION="1.21.11"
@@ -26,14 +25,6 @@ fi
 if [ ! -f "$VELOCITY_JAR" ]; then
   echo "ERROR: Velocity JAR not found: $VELOCITY_JAR"
   exit 1
-fi
-
-if [ ! -f "$LIMBO_JAR" ]; then
-  echo "NanoLimbo is not present yet. Downloading the latest release..."
-  curl -L --fail --show-error \
-    "https://github.com/Nan1t/NanoLimbo/releases/latest/download/NanoLimbo.jar" \
-    -o "$LIMBO_JAR"
-  echo "NanoLimbo downloaded."
 fi
 
 if [ ! -f "$PAPER_JAR" ]; then
@@ -68,14 +59,10 @@ if [ ! -f "$PAPER_JAR" ]; then
 fi
 
 VELOCITY_PID=""
-LIMBO_PID=""
 
 cleanup() {
   echo
-  echo "Stopping proxy and login server..."
-  if [ -n "${LIMBO_PID:-}" ]; then
-    kill "$LIMBO_PID" 2>/dev/null || true
-  fi
+  echo "Stopping Eaglercraft proxy..."
   if [ -n "${VELOCITY_PID:-}" ]; then
     kill "$VELOCITY_PID" 2>/dev/null || true
   fi
@@ -96,19 +83,7 @@ if ! kill -0 "$VELOCITY_PID" 2>/dev/null; then
 fi
 
 echo
-echo "Starting NanoLimbo login server on port 25566..."
-cd "$ROOT_DIR/limbo"
-java -jar "$LIMBO_JAR" &
-LIMBO_PID=$!
-sleep 3
-
-if ! kill -0 "$LIMBO_PID" 2>/dev/null; then
-  echo "ERROR: NanoLimbo exited during startup."
-  exit 1
-fi
-
-echo
-echo "Starting Paper $PAPER_VERSION gameplay server on port 25565..."
+echo "Starting Paper $PAPER_VERSION classroom server on port 25565..."
 echo
 echo "When the server is ready:"
 echo "  1. Open the PORTS tab in Codespaces."
