@@ -1,8 +1,8 @@
 # Eaglercraft Classroom Server
 
-A classroom-friendly Minecraft server that can run entirely in **GitHub Codespaces**.
+A classroom-friendly Minecraft server that runs in **GitHub Codespaces** and lets students join from a web browser.
 
-A teacher can fork this repository, launch a Codespace, start the server, and share one browser link with students. Students do **not** need Minecraft installed.
+A teacher can fork this repository, start a Codespace, run one command, and share one browser link with the class.
 
 > **Teacher quick start:** Fork → Create Codespace → run `bash startup.sh` → make port **25567 Public** → share the **/js/** link.
 
@@ -10,110 +10,99 @@ A teacher can fork this repository, launch a Codespace, start the server, and sh
 
 ## What this repository runs
 
-This project combines:
+This classroom version intentionally keeps the stack simple:
 
-- **Paper 1.21.11** — the main Minecraft gameplay server
-- **Velocity** — the proxy that students connect through
+- **Paper 1.21.11** — the Minecraft gameplay server
+- **Velocity** — the proxy students connect through
 - **EaglerXServer / EaglerXRewind** — browser-client support
-- **ViaVersion / ViaBackwards / ViaRewind** — version compatibility
-- **NanoLimbo + nLogin** — temporary login/authentication layer
-- **EaglerWeb** — hosts the browser client from the same address as the server
+- **ViaVersion / ViaBackwards / ViaRewind** — protocol compatibility
+- **EaglerWeb** — serves the browser client from the same Codespaces address
 
-### Important version note
+There is **no separate login server and no nLogin password screen**.
 
-The **server backend is Minecraft/Paper 1.21.11**, but the bundled classroom browser client is currently an **Eaglercraft 1.12.2 client**.
+Students choose a Minecraft username in the browser client and connect directly to the classroom world.
 
-That is intentional. The compatibility plugins translate between the browser client and the newer server backend.
+### Version note
+
+The backend is **Paper 1.21.11**, while the bundled classroom browser client is currently **Eaglercraft 1.12.2**.
+
+The Via* compatibility plugins translate between the older browser client and the newer Paper backend.
 
 ---
 
 # Teacher Setup
 
-## 1. Create a GitHub account
+## 1. Fork the repository
 
-Go to [github.com](https://github.com/) and create a free account if you do not already have one.
-
-Students do **not** need GitHub accounts to play.
-
-## 2. Fork this repository
-
-Open this repository on GitHub.
-
-Click:
+Sign in to GitHub, open this repository, and choose:
 
 **Fork → Create fork**
 
-This gives you your own copy of the server.
-
-You should run the server from **your fork**, not directly from someone else's repository.
+Students do **not** need GitHub accounts.
 
 ---
 
-## 3. Create a Codespace
+## 2. Create a Codespace
 
 Inside your fork:
 
 **Code → Codespaces → Create codespace on main**
 
-GitHub will open a browser-based VS Code environment.
-
-This repository includes a `.devcontainer/devcontainer.json` configuration that requests **Java 21** and forwards the Eaglercraft port automatically.
+The included dev-container configuration uses **Java 21** and forwards port **25567**.
 
 ---
 
-## 4. Start the server
+## 3. Start the classroom server
 
-Open the **Terminal** at the bottom of Codespaces.
-
-Run:
+Open the Codespaces Terminal and run:
 
 ```bash
 bash startup.sh
 ```
 
-The script starts three pieces of the server:
+The script starts:
 
 ```text
-Students
-   ↓
-Velocity + EaglerXServer       port 25567
-   ↓
-NanoLimbo login server        port 25566
-   ↓
-Paper 1.21.11 world server    port 25565
+Student browser
+      ↓
+Velocity + EaglerXServer     port 25567
+      ↓
+Paper 1.21.11               port 25565
+      ↓
+Classroom world
 ```
 
-On the first launch, the script downloads the current NanoLimbo server JAR and the latest stable official Paper 1.21.11 runnable server JAR if they are missing.
+On the first launch, the script downloads the latest stable official Paper 1.21.11 runnable server JAR if it is missing.
 
-Wait until Paper finishes starting and the terminal settles into normal server messages.
+Wait until Paper prints its normal **Done** message before students join.
 
 ---
 
-## 5. Make port 25567 Public
+## 4. Make port 25567 Public
 
-In Codespaces, click the **PORTS** tab next to the Terminal.
+Open the **PORTS** tab in Codespaces.
 
-You should see:
+Find port:
 
 ```text
 25567   Eaglercraft Classroom Server
 ```
 
-Right-click port **25567** and choose:
+Right-click it and choose:
 
 **Port Visibility → Public**
 
-This is required so student devices can reach the server.
+Only port **25567** should be public.
 
-> GitHub forwarded ports are private by default. After restarting a Codespace, always check that **25567 is Public** before class.
+Port **25565** is the internal Paper server and should remain private.
 
-Do **not** make ports 25565 or 25566 public. Students only need 25567.
+> Codespaces can return a forwarded port to Private after a restart, so check port 25567 before class.
 
 ---
 
-## 6. Get the student link
+## 5. Share the student link
 
-In the PORTS tab, copy the forwarded address for port **25567**.
+Copy the forwarded URL for port 25567.
 
 It will look similar to:
 
@@ -121,76 +110,61 @@ It will look similar to:
 https://your-codespace-name-25567.app.github.dev
 ```
 
-For students, add:
+Add:
 
 ```text
 /js/
 ```
 
-So the final student link looks like:
+The student link is therefore:
 
 ```text
 https://your-codespace-name-25567.app.github.dev/js/
 ```
 
-You can test it yourself in a new browser tab before sharing it.
-
-The repository also has a landing page at the base URL where you can choose between the JavaScript and WASM clients.
-
-### Recommended classroom link
-
-Use the **JavaScript client**:
-
-```text
-https://YOUR-CODESPACE-25567.app.github.dev/js/
-```
-
-It is the default classroom option.
+The client is already configured to connect back to the same Codespaces server, so students do **not** need to type an IP address or WebSocket address.
 
 ---
 
 # Student Directions
 
-Your teacher will give you a link.
-
-1. Open the link in Chrome, Edge, or another modern browser.
-2. Let the Eaglercraft client load.
+1. Open the link from your teacher.
+2. Let Eaglercraft load.
 3. Choose your Minecraft username.
 4. Open **Multiplayer**.
 5. Select **Classroom Server**.
 6. Click **Join Server**.
-7. If the server asks you to register or log in, follow the instructions shown in Minecraft chat.
-8. Enter the world.
+7. You should enter the class world directly.
 
-The server address is already built into the client. Students should **not need to type an IP address or WebSocket address manually**.
+There is no registration or password step.
 
 ### Username rule
 
-Minecraft usernames should contain only letters, numbers, and underscores and should be **3–16 characters** long.
+Use only letters, numbers, and underscores.
 
-Use the same username every time you return to the class server.
+Minecraft usernames must be **3–16 characters** long.
+
+Use the same username each time so your player data stays associated with the same name.
 
 ---
 
 # Starting Class Each Day
 
-Open the Codespace for your fork and run:
+Open your Codespace and run:
 
 ```bash
 bash startup.sh
 ```
 
-Then check the **PORTS** tab and confirm that **25567 is Public**.
+Then verify that **25567 is Public** in the PORTS tab.
 
-Share the same newly displayed `/js/` link with students.
-
-The forwarded Codespaces URL normally remains associated with that Codespace, but teachers should still verify the link before class.
+Share the `/js/` link with students.
 
 ---
 
 # Stopping the Server
 
-When class is finished, type this into the Minecraft server console:
+In the Paper console, type:
 
 ```text
 stop
@@ -198,43 +172,41 @@ stop
 
 Do not include a slash.
 
-The startup script will then stop the supporting proxy/login processes as well.
+Paper will save and shut down, and the startup script will stop Velocity as well.
 
-After the server shuts down cleanly, you can stop the Codespace.
+After that, stop the Codespace.
 
-### Important
+### Do not delete the Codespace unless you mean to
 
-**Stopping** a Codespace is different from **deleting** it.
+Stopping a Codespace preserves its files.
 
-Stopping it preserves the Codespace so you can resume later.
-
-Deleting the Codespace can remove server files and world changes that have not been backed up or committed.
+Deleting a Codespace can remove local world changes or other files that have not been backed up.
 
 ---
 
-# Teacher Server Commands
+# Teacher Console Commands
 
-When `startup.sh` is running, the terminal becomes the Paper server console.
+The terminal running `startup.sh` becomes the Paper server console.
 
-To make yourself an operator:
+Make yourself an operator:
 
 ```text
 op YourMinecraftUsername
 ```
 
-To remove operator permissions:
+Remove operator permissions:
 
 ```text
 deop YourMinecraftUsername
 ```
 
-To save the world:
+Save the world:
 
 ```text
 save-all
 ```
 
-To shut down safely:
+Stop safely:
 
 ```text
 stop
@@ -246,31 +218,25 @@ Console commands do **not** use a leading `/`.
 
 # Class Size
 
-The default Paper configuration currently allows:
-
-```text
-20 players
-```
-
-For a larger class, open:
-
-```text
-server/server.properties
-```
-
-Find:
+The default server limit is:
 
 ```properties
 max-players=20
 ```
 
-and change the number to your desired class capacity, for example:
+For a larger class, edit:
+
+```text
+server/server.properties
+```
+
+For example:
 
 ```properties
 max-players=30
 ```
 
-Restart the server after changing it.
+Restart the server afterward.
 
 ---
 
@@ -282,25 +248,39 @@ Paper plugins belong in:
 server/plugins/
 ```
 
-Most Paper/Spigot plugins are distributed as `.jar` files.
+For student coding projects, target the **Paper 1.21.11 API**.
 
-After adding a plugin, restart the server.
-
-For student coding projects, the backend students are targeting is **Paper 1.21.11**, even though the supplied browser client is based on Eaglercraft 1.12.2.
-
-This makes it possible to use a modern Paper plugin API while keeping a browser-based student client.
+The browser client is 1.12.2, so remember that genuinely newer Minecraft blocks, entities, UI, or client-side behavior may not appear correctly through protocol translation even when the backend plugin itself runs successfully.
 
 ---
 
-# Which Port Does What?
+# Ports
 
-| Port | Purpose | Make Public? |
+| Port | Purpose | Public? |
 |---|---|---|
 | **25567** | Velocity + Eaglercraft WebSocket + browser website | **Yes** |
-| **25566** | NanoLimbo authentication server | No |
 | **25565** | Paper gameplay server | No |
 
-Students should only ever be given the **25567 Codespaces URL**.
+Students only need the port **25567** Codespaces URL.
+
+---
+
+# Classroom Security Note
+
+This server uses Eaglercraft-compatible offline-mode connections.
+
+That means there is **no Mojang/Microsoft account authentication and no classroom password system**.
+
+Anyone who knows the live public Codespaces URL could potentially connect and choose a username, including a username another student has used.
+
+For a normal supervised classroom workflow:
+
+- Share the live URL only with your class.
+- Keep the Codespace running only when needed.
+- Stop the server after class.
+- Do not publish the live Codespaces URL publicly.
+
+If stronger identity controls are required, add a classroom-appropriate access-control system deliberately rather than using the removed nLogin/NanoLimbo flow.
 
 ---
 
@@ -314,60 +294,61 @@ Go to:
 
 **PORTS → 25567 → Port Visibility → Public**
 
-Then reload the student link.
+---
+
+## The browser shows HTTP 502
+
+GitHub is forwarding the port, but Velocity is not currently listening on 25567.
+
+Check the Terminal for a startup error.
+
+You can verify with:
+
+```bash
+ss -ltnp | grep 25567
+```
 
 ---
 
-## The browser says the page cannot be reached
+## The browser loads but Classroom Server shows offline
 
-Check that:
+Wait until Paper has fully started and prints **Done**.
 
-- `bash startup.sh` is still running.
-- Port **25567** appears in the PORTS tab.
-- Port **25567** is set to **Public**.
-- You copied the current Codespaces URL.
-- You added `/js/` to the end of the student link.
+Also check the terminal for Paper errors.
 
 ---
 
-## The game loads but Classroom Server is offline
+## An old login/password screen still appears
 
-Wait until the Paper server has completely started.
+You are probably running an older checkout or an old Java process.
 
-Also make sure the terminal does not show a crash or Java error.
-
----
-
-## Paper reports `NoClassDefFoundError` or `joptsimple/OptionException`
-
-Pull the latest version of this repository and restart. An earlier classroom startup script incorrectly launched Paper's internal version JAR instead of Paper's runnable server JAR. The current script downloads and launches the official stable Paper 1.21.11 server JAR automatically.
+Stop the existing server, then run:
 
 ```bash
 git pull
 bash startup.sh
 ```
 
----
+The current classroom version does **not** include nLogin or NanoLimbo.
 
-## The startup script says Java is missing
-
-The included Codespaces configuration uses Java 21, which Paper 1.21.11 supports.
-
-If you created the Codespace **before** this repository gained its `.devcontainer` configuration, rebuild the container or create a fresh Codespace from the current repository.
+If necessary, close and reopen the browser tab after the restart.
 
 ---
 
-## Students cannot join after a Codespace restart
+## Paper reports `NoClassDefFoundError` or `joptsimple/OptionException`
 
-Check the PORTS tab again.
+Pull the current repository and restart:
 
-GitHub may return a forwarded port to **Private** visibility after a Codespace restart. Set **25567** back to **Public**.
+```bash
+git pull
+bash startup.sh
+```
+
+The current script downloads and launches the proper runnable Paper 1.21.11 server JAR automatically.
 
 ---
 
 ## Student #21 cannot join
-
-The default maximum is 20 players.
 
 Increase `max-players` in:
 
@@ -375,15 +356,7 @@ Increase `max-players` in:
 server/server.properties
 ```
 
-Then restart the server.
-
----
-
-## A student is stuck on the login screen
-
-The server uses nLogin/NanoLimbo before moving students into the Paper world.
-
-Have the student follow the registration/login instructions displayed in Minecraft chat and make sure they are using the same username they previously registered.
+Then restart.
 
 ---
 
@@ -393,7 +366,7 @@ Have the student follow the registration/login instructions displayed in Minecra
 server/server.properties
 ```
 
-World settings, player limit, difficulty, game mode, etc.
+World settings, class size, difficulty, game mode, etc.
 
 ```text
 server/plugins/
@@ -405,30 +378,13 @@ Paper plugins and student-created server plugins.
 velocity/plugins/eaglerxserver/listeners.toml
 ```
 
-Eaglercraft server-list name/MOTD and listener options.
+Eaglercraft listener and server-list settings.
 
 ```text
 velocity/plugins/eaglerweb/web/
 ```
 
 The student-facing browser client website.
-
----
-
-# Classroom Safety / Network Notes
-
-The browser client in this fork is hosted directly by the teacher's Codespace.
-
-The classroom landing page included in this fork has been cleaned so it does **not** load the third-party advertising script that was present in the upstream template.
-
-Port 25567 must be Public for students to connect, which means anyone who has that URL can reach the server while the Codespace is running.
-
-For a classroom server:
-
-- Share the link only with the class.
-- Stop the server when class is over.
-- Use a whitelist or authentication controls if you need stricter access.
-- Do not publish the live Codespaces URL publicly.
 
 ---
 
@@ -439,30 +395,27 @@ Student Chromebook / Laptop
           │
           │ HTTPS + WebSocket
           ▼
-  GitHub Codespaces :25567
+ GitHub Codespaces :25567
           │
           ▼
  Velocity + EaglerXServer
           │
-          ├──────────────► NanoLimbo :25566
-          │                   login
-          │
           ▼
-     Paper 1.21.11 :25565
+    Paper 1.21.11 :25565
           │
           ▼
        Class World
 ```
 
-The JavaScript Eaglercraft client automatically builds its WebSocket server address from the same Codespaces URL that loaded the webpage.
+The JavaScript client automatically creates its WebSocket server address from the same Codespaces URL that served the game page.
 
-That is why the teacher can share **one link** instead of giving students a separate game-client link and server IP.
+That is why the teacher can share one link rather than a separate browser-client link and server address.
 
 ---
 
 # Credits
 
-This classroom-ready fork builds on the Eaglercraft server work by the Eaglercraft community, including EaglerXServer/EaglerXRewind, Paper, Velocity, ViaVersion, ViaBackwards, ViaRewind, NanoLimbo, nLogin, and the original server template authors.
+This classroom-ready fork builds on work from the Eaglercraft community and the Paper, Velocity, ViaVersion, ViaBackwards, and ViaRewind projects.
 
 Minecraft is a trademark of Microsoft/Mojang. This repository is not affiliated with or endorsed by Microsoft or Mojang.
 
