@@ -296,7 +296,7 @@ server/plugins/
 
 For student coding projects, target the **Paper 1.21.11 API**.
 
-The production browser client is 1.12.2. TuffXPlus improves compatibility with modern blocks, entities, world depth, swimming, and related server-side behavior, but protocol translation cannot make every modern client UI/mechanic exist in a 1.12.2 executable. Test client-dependent features before using them in a class activity.
+The production `/js/` browser client remains the existing stock 1.12.2 build. TuffXPlus exposes modern blocks, entities, world depth, swimming, and related features when a compatible TuffClient-style browser build is used; it does not turn the stock `/js/` executable into a modern Minecraft client. Test client-dependent features in `/modern/` before promoting them for class use.
 
 ---
 
