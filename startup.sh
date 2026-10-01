@@ -29,6 +29,11 @@ echo "Installing/verifying pinned proxy and translation dependencies..."
 bash "$ROOT_DIR/scripts/install-managed-dependencies.sh"
 
 echo
+echo "Removing retired EaglerSoccer plugin artifacts, if present..."
+rm -f "$ROOT_DIR"/server/plugins/EaglerSoccer*.jar
+rm -rf "$ROOT_DIR/server/plugins/EaglerSoccer"
+
+echo
 echo "Validating classroom stack topology..."
 bash "$ROOT_DIR/scripts/stack-smoke-test.sh"
 
@@ -64,13 +69,10 @@ if [ ! -f "$PAPER_JAR" ]; then
   echo "Paper downloaded."
 fi
 
-for classroom_plugin in \
-  "$ROOT_DIR/server/plugins/LuckyChests-1.0.0.jar" \
-  "$ROOT_DIR/server/plugins/EaglerSoccer-1.0.0.jar"; do
-  if [ ! -f "$classroom_plugin" ]; then
-    echo "WARNING: Optional classroom plugin is missing: $(basename "$classroom_plugin")"
-  fi
-done
+classroom_plugin="$ROOT_DIR/server/plugins/LuckyChests-1.0.0.jar"
+if [ ! -f "$classroom_plugin" ]; then
+  echo "WARNING: Optional classroom plugin is missing: $(basename "$classroom_plugin")"
+fi
 
 VELOCITY_PID=""
 

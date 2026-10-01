@@ -24,6 +24,11 @@ if compgen -G 'velocity/plugins/Via*.jar' >/dev/null; then
 fi
 [ ! -e server/plugins/TuffX.jar ] || fail "deprecated TuffX.jar must not be installed beside TuffXPlus"
 
+if compgen -G 'server/plugins/EaglerSoccer*.jar' >/dev/null; then
+  fail "retired EaglerSoccer plugin must not be present in the classroom server build"
+fi
+[ ! -d server/plugins/EaglerSoccer ] || fail "retired EaglerSoccer plugin data directory must not be present"
+
 grep -q 'http_websocket_max_frame_length = 196608' velocity/plugins/eaglerxserver/settings.toml ||
   fail "EaglerXServer WebSocket frame limit is not hardened"
 

@@ -69,7 +69,7 @@ Paper
 
 Via* is deliberately absent from Velocity because TuffXPlus requires ViaVersion/ViaBackwards on the backend server. The deprecated standalone `TuffX.jar` is also removed.
 
-The classroom-specific LuckyChests and EaglerSoccer JARs remain repository-managed by their GitHub sync workflows; startup no longer replaces them from a mutable `main` URL every time the server launches.
+The classroom-specific LuckyChests JAR remains repository-managed by its GitHub sync workflow. **EaglerSoccer is intentionally not part of the classroom build**; its sync workflow and JAR were removed, and `startup.sh` deletes any stale EaglerSoccer JAR/data left in an older Codespace before Paper starts.
 
 ---
 
