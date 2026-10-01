@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -6,36 +6,34 @@ VELOCITY_JAR="$ROOT_DIR/velocity/velocity-3.5.0-all.jar"
 PAPER_JAR="$ROOT_DIR/server/server.jar"
 
 PAPER_VERSION="1.21.11"
-PAPER_USER_AGENT="Eaglercraft-Classroom-Server/1.0 (https://github.com/SMalone16/Eaglercraft-1.21.11-Server)"
-
-LUCKY_CHESTS_VERSION="1.0.0"
-LUCKY_CHESTS_JAR="$ROOT_DIR/server/plugins/LuckyChests-$LUCKY_CHESTS_VERSION.jar"
-LUCKY_CHESTS_URL="https://raw.githubusercontent.com/SMalone16/LuckyChests1.21/main/dist/LuckyChests-$LUCKY_CHESTS_VERSION.jar"
-
-EAGLER_SOCCER_VERSION="1.0.0"
-EAGLER_SOCCER_JAR="$ROOT_DIR/server/plugins/EaglerSoccer-$EAGLER_SOCCER_VERSION.jar"
-EAGLER_SOCCER_URL="https://raw.githubusercontent.com/SMalone16/EaglerSoccer/main/dist/EaglerSoccer-$EAGLER_SOCCER_VERSION.jar"
+PAPER_USER_AGENT="Eaglercraft-Classroom-Server/2.0 (https://github.com/SMalone16/Eaglercraft-1.21.11-Server)"
 
 echo "============================================================"
 echo " Eaglercraft Classroom Server"
 echo "============================================================"
 
-if ! command -v java >/dev/null 2>&1; then
-  echo "ERROR: Java is not installed. Java 21 or newer is required."
-  exit 1
-fi
-
-if ! command -v curl >/dev/null 2>&1; then
-  echo "ERROR: curl is not installed."
-  exit 1
-fi
+for command_name in java curl; do
+  if ! command -v "$command_name" >/dev/null 2>&1; then
+    echo "ERROR: $command_name is required."
+    exit 1
+  fi
+done
 
 if [ ! -f "$VELOCITY_JAR" ]; then
   echo "ERROR: Velocity JAR not found: $VELOCITY_JAR"
   exit 1
 fi
 
+echo
+echo "Installing/verifying pinned proxy and translation dependencies..."
+bash "$ROOT_DIR/scripts/install-managed-dependencies.sh"
+
+echo
+echo "Validating classroom stack topology..."
+bash "$ROOT_DIR/scripts/stack-smoke-test.sh"
+
 if [ ! -f "$PAPER_JAR" ]; then
+  echo
   echo "Paper $PAPER_VERSION launcher is not present yet."
   echo "Finding the latest stable Paper $PAPER_VERSION build..."
 
@@ -58,7 +56,7 @@ if [ ! -f "$PAPER_JAR" ]; then
   fi
 
   echo "Downloading official Paper $PAPER_VERSION server..."
-  curl -L --fail --show-error \
+  curl -L --fail --show-error --retry 3 --retry-delay 2 \
     -H "User-Agent: $PAPER_USER_AGENT" \
     "$PAPER_URL" \
     -o "$PAPER_JAR"
@@ -66,36 +64,13 @@ if [ ! -f "$PAPER_JAR" ]; then
   echo "Paper downloaded."
 fi
 
-mkdir -p "$ROOT_DIR/server/plugins"
-
-refresh_plugin() {
-  local name="$1"
-  local jar_path="$2"
-  local url="$3"
-  local tmp_path="$jar_path.tmp"
-
-  echo
-  echo "Checking $name..."
-
-  if curl -L --fail --show-error -sS \
-    -H "User-Agent: $PAPER_USER_AGENT" \
-    "$url" \
-    -o "$tmp_path"; then
-    mv "$tmp_path" "$jar_path"
-    echo "$name installed/updated."
-  else
-    rm -f "$tmp_path"
-    if [ -f "$jar_path" ]; then
-      echo "WARNING: Could not refresh $name; using the existing local JAR."
-    else
-      echo "WARNING: $name could not be downloaded and is not installed yet."
-      echo "The server will still start normally."
-    fi
+for classroom_plugin in \
+  "$ROOT_DIR/server/plugins/LuckyChests-1.0.0.jar" \
+  "$ROOT_DIR/server/plugins/EaglerSoccer-1.0.0.jar"; do
+  if [ ! -f "$classroom_plugin" ]; then
+    echo "WARNING: Optional classroom plugin is missing: $(basename "$classroom_plugin")"
   fi
-}
-
-refresh_plugin "LuckyChests $LUCKY_CHESTS_VERSION" "$LUCKY_CHESTS_JAR" "$LUCKY_CHESTS_URL"
-refresh_plugin "EaglerSoccer $EAGLER_SOCCER_VERSION" "$EAGLER_SOCCER_JAR" "$EAGLER_SOCCER_URL"
+done
 
 VELOCITY_PID=""
 
@@ -104,19 +79,37 @@ cleanup() {
   echo "Stopping Eaglercraft proxy..."
   if [ -n "${VELOCITY_PID:-}" ]; then
     kill "$VELOCITY_PID" 2>/dev/null || true
+    wait "$VELOCITY_PID" 2>/dev/null || true
   fi
 }
 trap cleanup EXIT INT TERM
 
 echo
-echo "Starting Velocity proxy on port 25567..."
+echo "Starting Velocity + EaglerXServer on port 25567..."
 cd "$ROOT_DIR/velocity"
 java -jar "$VELOCITY_JAR" &
 VELOCITY_PID=$!
-sleep 5
 
-if ! kill -0 "$VELOCITY_PID" 2>/dev/null; then
-  echo "ERROR: Velocity exited during startup."
+PROXY_READY=false
+for _ in $(seq 1 20); do
+  if ! kill -0 "$VELOCITY_PID" 2>/dev/null; then
+    echo "ERROR: Velocity exited during startup."
+    echo "Check velocity/logs/latest.log for details."
+    exit 1
+  fi
+
+  if (exec 3<>/dev/tcp/127.0.0.1/25567) 2>/dev/null; then
+    exec 3>&-
+    exec 3<&-
+    PROXY_READY=true
+    break
+  fi
+
+  sleep 1
+done
+
+if [ "$PROXY_READY" != "true" ]; then
+  echo "ERROR: Velocity did not begin listening on port 25567."
   echo "Check velocity/logs/latest.log for details."
   exit 1
 fi
@@ -127,10 +120,11 @@ echo
 echo "When the server is ready:"
 echo "  1. Open the PORTS tab in Codespaces."
 echo "  2. Make port 25567 PUBLIC."
-echo "  3. Share the forwarded 25567 URL with /js/ added to the end."
+echo "  3. Share the forwarded URL with /js/ for the known-good client."
+echo "  4. The root URL shows the isolated modern/experimental client slots."
 echo
 echo "Codespaces should detect this address and forward the port:"
-echo "http://localhost:25567/js/"
+echo "http://localhost:25567/"
 echo
 echo "Waiting for Paper to finish starting..."
 echo "------------------------------------------------------------"
