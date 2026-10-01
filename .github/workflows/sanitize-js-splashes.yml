@@ -1,6 +1,7 @@
 name: Sanitize classroom JS splashes
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "sanitize/classroom-splashes"
