@@ -12,6 +12,10 @@ LUCKY_CHESTS_VERSION="1.0.0"
 LUCKY_CHESTS_JAR="$ROOT_DIR/server/plugins/LuckyChests-$LUCKY_CHESTS_VERSION.jar"
 LUCKY_CHESTS_URL="https://raw.githubusercontent.com/SMalone16/LuckyChests1.21/main/dist/LuckyChests-$LUCKY_CHESTS_VERSION.jar"
 
+EAGLER_SOCCER_VERSION="1.0.0"
+EAGLER_SOCCER_JAR="$ROOT_DIR/server/plugins/EaglerSoccer-$EAGLER_SOCCER_VERSION.jar"
+EAGLER_SOCCER_URL="https://raw.githubusercontent.com/SMalone16/EaglerSoccer/main/dist/EaglerSoccer-$EAGLER_SOCCER_VERSION.jar"
+
 echo "============================================================"
 echo " Eaglercraft Classroom Server"
 echo "============================================================"
@@ -62,26 +66,36 @@ if [ ! -f "$PAPER_JAR" ]; then
   echo "Paper downloaded."
 fi
 
-echo
-echo "Checking LuckyChests $LUCKY_CHESTS_VERSION..."
 mkdir -p "$ROOT_DIR/server/plugins"
-LUCKY_CHESTS_TMP="$LUCKY_CHESTS_JAR.tmp"
 
-if curl -L --fail --show-error -sS \
-  -H "User-Agent: $PAPER_USER_AGENT" \
-  "$LUCKY_CHESTS_URL" \
-  -o "$LUCKY_CHESTS_TMP"; then
-  mv "$LUCKY_CHESTS_TMP" "$LUCKY_CHESTS_JAR"
-  echo "LuckyChests $LUCKY_CHESTS_VERSION installed/updated."
-else
-  rm -f "$LUCKY_CHESTS_TMP"
-  if [ -f "$LUCKY_CHESTS_JAR" ]; then
-    echo "WARNING: Could not refresh LuckyChests; using the existing local JAR."
+refresh_plugin() {
+  local name="$1"
+  local jar_path="$2"
+  local url="$3"
+  local tmp_path="$jar_path.tmp"
+
+  echo
+  echo "Checking $name..."
+
+  if curl -L --fail --show-error -sS \
+    -H "User-Agent: $PAPER_USER_AGENT" \
+    "$url" \
+    -o "$tmp_path"; then
+    mv "$tmp_path" "$jar_path"
+    echo "$name installed/updated."
   else
-    echo "WARNING: LuckyChests could not be downloaded and is not installed yet."
-    echo "The server will still start normally."
+    rm -f "$tmp_path"
+    if [ -f "$jar_path" ]; then
+      echo "WARNING: Could not refresh $name; using the existing local JAR."
+    else
+      echo "WARNING: $name could not be downloaded and is not installed yet."
+      echo "The server will still start normally."
+    fi
   fi
-fi
+}
+
+refresh_plugin "LuckyChests $LUCKY_CHESTS_VERSION" "$LUCKY_CHESTS_JAR" "$LUCKY_CHESTS_URL"
+refresh_plugin "EaglerSoccer $EAGLER_SOCCER_VERSION" "$EAGLER_SOCCER_JAR" "$EAGLER_SOCCER_URL"
 
 VELOCITY_PID=""
 
