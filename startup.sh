@@ -8,6 +8,10 @@ PAPER_JAR="$ROOT_DIR/server/server.jar"
 PAPER_VERSION="1.21.11"
 PAPER_USER_AGENT="Eaglercraft-Classroom-Server/1.0 (https://github.com/SMalone16/Eaglercraft-1.21.11-Server)"
 
+LUCKY_CHESTS_VERSION="1.0.0"
+LUCKY_CHESTS_JAR="$ROOT_DIR/server/plugins/LuckyChests-$LUCKY_CHESTS_VERSION.jar"
+LUCKY_CHESTS_URL="https://raw.githubusercontent.com/SMalone16/LuckyChests1.21/main/dist/LuckyChests-$LUCKY_CHESTS_VERSION.jar"
+
 echo "============================================================"
 echo " Eaglercraft Classroom Server"
 echo "============================================================"
@@ -56,6 +60,27 @@ if [ ! -f "$PAPER_JAR" ]; then
     -o "$PAPER_JAR"
 
   echo "Paper downloaded."
+fi
+
+echo
+echo "Checking LuckyChests $LUCKY_CHESTS_VERSION..."
+mkdir -p "$ROOT_DIR/server/plugins"
+LUCKY_CHESTS_TMP="$LUCKY_CHESTS_JAR.tmp"
+
+if curl -L --fail --show-error -sS \
+  -H "User-Agent: $PAPER_USER_AGENT" \
+  "$LUCKY_CHESTS_URL" \
+  -o "$LUCKY_CHESTS_TMP"; then
+  mv "$LUCKY_CHESTS_TMP" "$LUCKY_CHESTS_JAR"
+  echo "LuckyChests $LUCKY_CHESTS_VERSION installed/updated."
+else
+  rm -f "$LUCKY_CHESTS_TMP"
+  if [ -f "$LUCKY_CHESTS_JAR" ]; then
+    echo "WARNING: Could not refresh LuckyChests; using the existing local JAR."
+  else
+    echo "WARNING: LuckyChests could not be downloaded and is not installed yet."
+    echo "The server will still start normally."
+  fi
 fi
 
 VELOCITY_PID=""
