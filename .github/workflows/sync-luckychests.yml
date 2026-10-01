@@ -10,6 +10,10 @@ on:
 permissions:
   contents: write
 
+env:
+  LUCKY_CHESTS_SOURCE_COMMIT: 893dc399292386412171b2afd28cf51c0da27241
+  LUCKY_CHESTS_JAR: LuckyChests-1.0.0.jar
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -17,19 +21,18 @@ jobs:
       - name: Check out server repository
         uses: actions/checkout@v4
 
-      - name: Download latest LuckyChests build
+      - name: Download pinned LuckyChests build
         run: |
           mkdir -p server/plugins
-          curl -L --fail --show-error -sS \
-            https://raw.githubusercontent.com/SMalone16/LuckyChests1.21/main/dist/LuckyChests-1.0.0.jar \
-            -o server/plugins/LuckyChests-1.0.0.jar
+          curl -L --fail --show-error -sS             "https://raw.githubusercontent.com/SMalone16/LuckyChests1.21/${LUCKY_CHESTS_SOURCE_COMMIT}/dist/${LUCKY_CHESTS_JAR}"             -o "server/plugins/${LUCKY_CHESTS_JAR}"
+          unzip -tqq "server/plugins/${LUCKY_CHESTS_JAR}"
 
       - name: Commit JAR to server plugins
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add server/plugins/LuckyChests-1.0.0.jar
+          git add "server/plugins/${LUCKY_CHESTS_JAR}"
           if ! git diff --cached --quiet; then
-            git commit -m "Add LuckyChests 1.0.0 plugin"
+            git commit -m "Sync LuckyChests 1.0.0 plugin"
             git push
           fi
