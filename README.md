@@ -14,9 +14,10 @@ This classroom version intentionally keeps the stack simple:
 
 - **Paper 1.21.11** — the Minecraft gameplay server
 - **Velocity** — the proxy students connect through
-- **EaglerXServer / EaglerXRewind** — browser-client support
-- **ViaVersion / ViaBackwards / ViaRewind** — protocol compatibility
-- **EaglerWeb** — serves the browser client from the same Codespaces address
+- **EaglerXServer 1.1.1 / EaglerXRewind 1.1.1** — browser-client support on Velocity
+- **ViaVersion 5.12.0 / ViaBackwards 5.12.0 / ViaRewind 4.2.0** — protocol compatibility on the Paper backend only
+- **TuffXPlus 1.1.1** — modern block/entity/world-depth compatibility for supported browser clients
+- **EaglerWeb 1.1.1** — serves browser clients from the same Codespaces address
 
 There is **no separate login server and no nLogin password screen**.
 
@@ -26,7 +27,49 @@ Students choose a Minecraft username in the browser client and connect directly 
 
 The backend is **Paper 1.21.11**, while the bundled classroom browser client is currently **Eaglercraft 1.12.2**.
 
-The Via* compatibility plugins translate between the older browser client and the newer Paper backend.
+The Via* compatibility plugins translate between the older browser client and the newer Paper backend. TuffXPlus extends that bridge with modern block/entity palettes and below-Y0 support for compatible clients.
+
+### Browser client slots
+
+Client experiments are isolated so a browser upgrade cannot overwrite the working classroom build:
+
+| Path | Status | Purpose |
+|---|---|---|
+| **/js/** | Production | Existing Eaglercraft 1.12.2 JavaScript client. This directory is intentionally left unchanged. |
+| **/wasm/** | Production/alternate | Existing 1.12.2 WASM client. |
+| **/modern/** | Staging | Reserved for a verified modern classroom client. Until one is promoted, it links back to /js/. |
+| **/experimental/1.21/** | Experimental | Reserved for reproducible protocol-v5 1.21.x browser-client testing. |
+
+EaglerXServer's protocol-v5 ceiling remains unrestricted in the checked-in configuration, so a future modern client can be tested against the same proxy without replacing the stable client.
+
+### Reproducible dependency bootstrap
+
+Core translation/proxy plugin JARs are **not committed to the repository anymore**. Their versions, upstream release URLs, and SHA-256 digests live in:
+
+```text
+stack-versions.env
+```
+
+`startup.sh` calls `scripts/install-managed-dependencies.sh`, which downloads missing/outdated managed JARs and verifies every file before it is installed.
+
+The managed topology is:
+
+```text
+Velocity
+├─ EaglerXServer
+├─ EaglerWeb
+└─ EaglerXRewind
+
+Paper
+├─ ViaVersion
+├─ ViaBackwards
+├─ ViaRewind
+└─ TuffXPlus
+```
+
+Via* is deliberately absent from Velocity because TuffXPlus requires ViaVersion/ViaBackwards on the backend server. The deprecated standalone `TuffX.jar` is also removed.
+
+The classroom-specific LuckyChests and EaglerSoccer JARs remain repository-managed by their GitHub sync workflows; startup no longer replaces them from a mutable `main` URL every time the server launches.
 
 ---
 
@@ -72,7 +115,10 @@ Paper 1.21.11               port 25565
 Classroom world
 ```
 
-On the first launch, the script downloads the latest stable official Paper 1.21.11 runnable server JAR if it is missing.
+On the first launch, the script:
+1. downloads/verifies the pinned EaglerXServer, EaglerWeb, EaglerXRewind, Via*, and TuffXPlus releases;
+2. runs a stack smoke test to reject duplicate/incorrect plugin placement; and
+3. downloads the latest stable official Paper 1.21.11 runnable server JAR if it is missing.
 
 Wait until Paper prints its normal **Done** message before students join.
 
@@ -250,7 +296,7 @@ server/plugins/
 
 For student coding projects, target the **Paper 1.21.11 API**.
 
-The browser client is 1.12.2, so remember that genuinely newer Minecraft blocks, entities, UI, or client-side behavior may not appear correctly through protocol translation even when the backend plugin itself runs successfully.
+The production `/js/` browser client remains the existing stock 1.12.2 build. TuffXPlus exposes modern blocks, entities, world depth, swimming, and related features when a compatible TuffClient-style browser build is used; it does not turn the stock `/js/` executable into a modern Minecraft client. Test client-dependent features in `/modern/` before promoting them for class use.
 
 ---
 
@@ -360,6 +406,21 @@ Then restart.
 
 ---
 
+# Managed Stack Maintenance
+
+To update a managed upstream dependency, edit `stack-versions.env` with the new release URL and SHA-256 digest, then run:
+
+```bash
+bash scripts/install-managed-dependencies.sh
+bash scripts/stack-smoke-test.sh
+```
+
+GitHub Actions runs the same dependency installation and smoke test for pull requests and modernization branches.
+
+If startup reports a SHA-256 mismatch, the file is **not** installed. Check that the upstream release URL and digest in `stack-versions.env` match the intended release instead of bypassing verification.
+
+---
+
 # Files Teachers Will Most Often Edit
 
 ```text
@@ -384,7 +445,13 @@ Eaglercraft listener and server-list settings.
 velocity/plugins/eaglerweb/web/
 ```
 
-The student-facing browser client website.
+The student-facing browser client website. Keep `/js/` as the known-good fallback while testing new clients in the staging/experimental slots.
+
+```text
+stack-versions.env
+```
+
+Pinned versions, release URLs, and SHA-256 hashes for the managed Eagler/Via/TuffXPlus stack.
 
 ---
 
@@ -402,6 +469,7 @@ Student Chromebook / Laptop
           │
           ▼
     Paper 1.21.11 :25565
+    Via* + TuffXPlus
           │
           ▼
        Class World

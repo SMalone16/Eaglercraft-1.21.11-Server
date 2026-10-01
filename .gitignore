@@ -4,6 +4,24 @@ server/server-*.jar*
 velocity/server.jar
 velocity/server-*.jar*
 
+# Bootstrap-managed proxy/backend plugin binaries
+velocity/plugins/EaglerWeb.jar
+velocity/plugins/EaglerXServer.jar
+velocity/plugins/EaglerXRewind.jar
+velocity/plugins/EaglerXSupervisor.jar
+velocity/plugins/ViaVersion*.jar
+velocity/plugins/ViaBackwards*.jar
+velocity/plugins/ViaRewind*.jar
+server/plugins/ViaVersion-*.jar
+server/plugins/ViaBackwards-*.jar
+server/plugins/ViaRewind-*.jar
+server/plugins/TuffX.jar
+server/plugins/TuffXPlus-*.jar
+
+# Runtime-generated data
+velocity/eagler_skins_cache.db
+velocity/forwarding.secret
+
 # Logs
 server/logs/
 velocity/logs/
@@ -11,6 +29,8 @@ velocity/logs/
 
 # Caches and temp files
 server/cache/
+*.download
+*.tmp
 *.swp
 *.swo
 *~

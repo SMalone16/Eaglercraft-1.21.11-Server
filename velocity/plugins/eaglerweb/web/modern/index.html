@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modern Client Slot</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background:#0d1117; color:#e6edf3; margin:0; min-height:100vh; display:grid; place-items:center; }
+    main { width:min(680px, calc(100% - 40px)); background:#161b22; border:1px solid #30363d; border-radius:16px; padding:32px; }
+    a { color:#58a6ff; }
+    .button { display:inline-block; margin-top:12px; background:#238636; color:white; text-decoration:none; padding:11px 16px; border-radius:8px; font-weight:700; }
+    code { background:#21262d; padding:2px 6px; border-radius:5px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Modern client staging slot</h1>
+    <p>This path is reserved for a verified modern browser client. It is deliberately isolated so a client upgrade never replaces the known-good <code>/js/</code> classroom build.</p>
+    <p>No modern client has been promoted here yet. Use the stable classroom client while candidate builds are tested.</p>
+    <a class="button" href="/js/">Launch stable 1.12.2 client</a>
+  </main>
+</body>
+</html>

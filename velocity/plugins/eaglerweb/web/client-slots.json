@@ -1,0 +1,19 @@
+{
+  "stable": {
+    "path": "/js/",
+    "minecraftProtocol": 340,
+    "minecraftVersion": "1.12.2",
+    "status": "production",
+    "policy": "Do not replace during client experiments."
+  },
+  "modern": {
+    "path": "/modern/",
+    "status": "staging",
+    "policy": "Promote a verified modern client here after classroom compatibility testing."
+  },
+  "experimental121": {
+    "path": "/experimental/1.21/",
+    "status": "experimental",
+    "policy": "Reserved for reproducible Eagler protocol-v5 clients using a modern Minecraft protocol."
+  }
+}
