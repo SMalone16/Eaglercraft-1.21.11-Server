@@ -1,0 +1,113 @@
+name: Sanitize classroom JS splashes
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "sanitize/classroom-splashes"
+    paths:
+      - "classroom/client-splashes.txt"
+      - ".github/workflows/sanitize-js-splashes.yml"
+
+permissions:
+  contents: write
+
+env:
+  BINARY_TOOLS_COMMIT: 7051bfd548fb04834c6c6ebfa1fbee9dd2af2336
+  CLIENT_ASSET: velocity/plugins/eaglerweb/web/js/assets.epk
+
+jobs:
+  sanitize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out sanitizer branch
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Download pinned Eagler Binary Tools
+        run: |
+          curl -L --fail --show-error --retry 3 "https://raw.githubusercontent.com/lax1dude/eagler-binary-tools/${BINARY_TOOLS_COMMIT}/EaglerBinaryTools.jar" -o /tmp/EaglerBinaryTools.jar
+          jar tf /tmp/EaglerBinaryTools.jar >/dev/null
+
+      - name: Inspect current JS client assets
+        id: inspect
+        run: |
+          rm -rf /tmp/eagler-assets /tmp/eagler-verify
+          mkdir -p /tmp/eagler-assets
+          java -jar /tmp/EaglerBinaryTools.jar epkdecompiler "${CLIENT_ASSET}" /tmp/eagler-assets
+
+          mapfile -t SPLASH_FILES < <(find /tmp/eagler-assets -type f -name 'splashes.txt' -print)
+
+          if [ "${#SPLASH_FILES[@]}" -ne 1 ]; then
+            echo "ERROR: Expected exactly one splashes.txt in the client asset pack; found ${#SPLASH_FILES[@]}."
+            echo "${SPLASH_FILES[@]}"
+            exit 1
+          fi
+
+          echo "Found splash resource: ${SPLASH_FILES[0]}"
+          echo "Current splash count: $(wc -l < "${SPLASH_FILES[0]}")"
+          echo "${SPLASH_FILES[0]}" > /tmp/splash-path.txt
+
+          if cmp -s classroom/client-splashes.txt "${SPLASH_FILES[0]}"; then
+            echo "already_safe=true" >> "$GITHUB_OUTPUT"
+            echo "Client asset pack already contains the classroom-safe splash list."
+          else
+            echo "already_safe=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Replace splash resource with classroom-safe list
+        if: steps.inspect.outputs.already_safe != 'true'
+        run: |
+          SPLASH_FILE="$(cat /tmp/splash-path.txt)"
+          cp classroom/client-splashes.txt "$SPLASH_FILE"
+          echo "Classroom splash count: $(wc -l < "$SPLASH_FILE")"
+
+      - name: Rebuild JS client asset pack
+        if: steps.inspect.outputs.already_safe != 'true'
+        run: |
+          java -jar /tmp/EaglerBinaryTools.jar epkcompiler /tmp/eagler-assets /tmp/assets.epk gzip epk/resources
+          test -s /tmp/assets.epk
+          mv /tmp/assets.epk "${CLIENT_ASSET}"
+
+      - name: Verify rebuilt asset contains only classroom splashes
+        if: steps.inspect.outputs.already_safe != 'true'
+        run: |
+          mkdir -p /tmp/eagler-verify
+          java -jar /tmp/EaglerBinaryTools.jar epkdecompiler "${CLIENT_ASSET}" /tmp/eagler-verify
+
+          mapfile -t VERIFY_SPLASHES < <(find /tmp/eagler-verify -type f -name 'splashes.txt' -print)
+          if [ "${#VERIFY_SPLASHES[@]}" -ne 1 ]; then
+            echo "ERROR: Rebuilt asset does not contain exactly one splashes.txt."
+            exit 1
+          fi
+
+          diff -u classroom/client-splashes.txt "${VERIFY_SPLASHES[0]}"
+          echo "Verified classroom-safe splash resource."
+
+      - name: Ensure sanitizer changed only the JS asset pack
+        if: steps.inspect.outputs.already_safe != 'true'
+        run: |
+          mapfile -t CHANGED < <(git status --short | awk '{print $2}')
+          if [ "${#CHANGED[@]}" -ne 1 ] || [ "${CHANGED[0]}" != "${CLIENT_ASSET}" ]; then
+            echo "ERROR: Unexpected files changed by sanitizer:"
+            git status --short
+            exit 1
+          fi
+
+      - name: Commit sanitized asset pack
+        if: steps.inspect.outputs.already_safe != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "${CLIENT_ASSET}"
+          if ! git diff --cached --quiet; then
+            git commit -m "Sanitize classroom Minecraft splash text"
+            git push
+          fi
