@@ -36,7 +36,8 @@ jobs:
           curl -L --fail --show-error --retry 3             "https://raw.githubusercontent.com/lax1dude/eagler-binary-tools/${BINARY_TOOLS_COMMIT}/EaglerBinaryTools.jar"             -o /tmp/EaglerBinaryTools.jar
           jar tf /tmp/EaglerBinaryTools.jar >/dev/null
 
-      - name: Decompile current JS client assets
+      - name: Inspect current JS client assets
+        id: inspect
         run: |
           rm -rf /tmp/eagler-assets /tmp/eagler-verify
           mkdir -p /tmp/eagler-assets
@@ -46,22 +47,32 @@ jobs:
 
           if [ "${#SPLASH_FILES[@]}" -ne 1 ]; then
             echo "ERROR: Expected exactly one splashes.txt in the client asset pack; found ${#SPLASH_FILES[@]}."
-            printf '%s\n' "${SPLASH_FILES[@]}"
+            printf '%s
+' "${SPLASH_FILES[@]}"
             exit 1
           fi
 
           echo "Found splash resource: ${SPLASH_FILES[0]}"
-          echo "Original splash count: $(wc -l < "${SPLASH_FILES[0]}")"
+          echo "Current splash count: $(wc -l < "${SPLASH_FILES[0]}")"
+          printf '%s
+' "${SPLASH_FILES[0]}" > /tmp/splash-path.txt
 
-          printf '%s\n' "${SPLASH_FILES[0]}" > /tmp/splash-path.txt
+          if cmp -s classroom/client-splashes.txt "${SPLASH_FILES[0]}"; then
+            echo "already_safe=true" >> "$GITHUB_OUTPUT"
+            echo "Client asset pack already contains the classroom-safe splash list."
+          else
+            echo "already_safe=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Replace splash resource with classroom-safe list
+        if: steps.inspect.outputs.already_safe != 'true'
         run: |
           SPLASH_FILE="$(cat /tmp/splash-path.txt)"
           cp classroom/client-splashes.txt "$SPLASH_FILE"
           echo "Classroom splash count: $(wc -l < "$SPLASH_FILE")"
 
       - name: Rebuild JS client asset pack
+        if: steps.inspect.outputs.already_safe != 'true'
         run: |
           java -jar /tmp/EaglerBinaryTools.jar epkcompiler             /tmp/eagler-assets             /tmp/assets.epk             gzip             epk/resources
 
@@ -69,6 +80,7 @@ jobs:
           mv /tmp/assets.epk "${CLIENT_ASSET}"
 
       - name: Verify rebuilt asset contains only classroom splashes
+        if: steps.inspect.outputs.already_safe != 'true'
         run: |
           mkdir -p /tmp/eagler-verify
           java -jar /tmp/EaglerBinaryTools.jar epkdecompiler             "${CLIENT_ASSET}"             /tmp/eagler-verify
@@ -83,6 +95,7 @@ jobs:
           echo "Verified classroom-safe splash resource."
 
       - name: Ensure sanitizer changed only the JS asset pack
+        if: steps.inspect.outputs.already_safe != 'true'
         run: |
           mapfile -t CHANGED < <(git status --short | awk '{print $2}')
           if [ "${#CHANGED[@]}" -ne 1 ] || [ "${CHANGED[0]}" != "${CLIENT_ASSET}" ]; then
@@ -92,6 +105,7 @@ jobs:
           fi
 
       - name: Commit sanitized asset pack
+        if: steps.inspect.outputs.already_safe != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
