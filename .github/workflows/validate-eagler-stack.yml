@@ -10,6 +10,9 @@ on:
 permissions:
   contents: read
 
+env:
+  EAGLER_BINARY_TOOLS_COMMIT: 7051bfd548fb04834c6c6ebfa1fbee9dd2af2336
+
 jobs:
   validate-stack:
     runs-on: ubuntu-latest
@@ -23,6 +26,24 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+
+      - name: Verify classroom-safe JS splash resource
+        run: |
+          curl -L --fail --show-error --retry 3 \
+            "https://raw.githubusercontent.com/lax1dude/eagler-binary-tools/${EAGLER_BINARY_TOOLS_COMMIT}/EaglerBinaryTools.jar" \
+            -o /tmp/EaglerBinaryTools.jar
+          jar tf /tmp/EaglerBinaryTools.jar >/dev/null
+          rm -rf /tmp/client-assets
+          mkdir -p /tmp/client-assets
+          java -jar /tmp/EaglerBinaryTools.jar epkdecompiler \
+            velocity/plugins/eaglerweb/web/js/assets.epk \
+            /tmp/client-assets
+          mapfile -t SPLASH_FILES < <(find /tmp/client-assets -type f -name 'splashes.txt' -print)
+          if [ "${#SPLASH_FILES[@]}" -ne 1 ]; then
+            echo "Expected exactly one splashes.txt in /js/assets.epk; found ${#SPLASH_FILES[@]}."
+            exit 1
+          fi
+          diff -u classroom/client-splashes.txt "${SPLASH_FILES[0]}"
 
       - name: Install pinned managed dependencies
         run: bash scripts/install-managed-dependencies.sh
