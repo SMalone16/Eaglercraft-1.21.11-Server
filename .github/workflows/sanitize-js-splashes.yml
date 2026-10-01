@@ -33,7 +33,7 @@ jobs:
 
       - name: Download pinned Eagler Binary Tools
         run: |
-          curl -L --fail --show-error --retry 3             "https://raw.githubusercontent.com/lax1dude/eagler-binary-tools/${BINARY_TOOLS_COMMIT}/EaglerBinaryTools.jar"             -o /tmp/EaglerBinaryTools.jar
+          curl -L --fail --show-error --retry 3 "https://raw.githubusercontent.com/lax1dude/eagler-binary-tools/${BINARY_TOOLS_COMMIT}/EaglerBinaryTools.jar" -o /tmp/EaglerBinaryTools.jar
           jar tf /tmp/EaglerBinaryTools.jar >/dev/null
 
       - name: Inspect current JS client assets
@@ -41,21 +41,19 @@ jobs:
         run: |
           rm -rf /tmp/eagler-assets /tmp/eagler-verify
           mkdir -p /tmp/eagler-assets
-          java -jar /tmp/EaglerBinaryTools.jar epkdecompiler             "${CLIENT_ASSET}"             /tmp/eagler-assets
+          java -jar /tmp/EaglerBinaryTools.jar epkdecompiler "${CLIENT_ASSET}" /tmp/eagler-assets
 
           mapfile -t SPLASH_FILES < <(find /tmp/eagler-assets -type f -name 'splashes.txt' -print)
 
           if [ "${#SPLASH_FILES[@]}" -ne 1 ]; then
             echo "ERROR: Expected exactly one splashes.txt in the client asset pack; found ${#SPLASH_FILES[@]}."
-            printf '%s
-' "${SPLASH_FILES[@]}"
+            echo "${SPLASH_FILES[@]}"
             exit 1
           fi
 
           echo "Found splash resource: ${SPLASH_FILES[0]}"
           echo "Current splash count: $(wc -l < "${SPLASH_FILES[0]}")"
-          printf '%s
-' "${SPLASH_FILES[0]}" > /tmp/splash-path.txt
+          echo "${SPLASH_FILES[0]}" > /tmp/splash-path.txt
 
           if cmp -s classroom/client-splashes.txt "${SPLASH_FILES[0]}"; then
             echo "already_safe=true" >> "$GITHUB_OUTPUT"
@@ -74,8 +72,7 @@ jobs:
       - name: Rebuild JS client asset pack
         if: steps.inspect.outputs.already_safe != 'true'
         run: |
-          java -jar /tmp/EaglerBinaryTools.jar epkcompiler             /tmp/eagler-assets             /tmp/assets.epk             gzip             epk/resources
-
+          java -jar /tmp/EaglerBinaryTools.jar epkcompiler /tmp/eagler-assets /tmp/assets.epk gzip epk/resources
           test -s /tmp/assets.epk
           mv /tmp/assets.epk "${CLIENT_ASSET}"
 
@@ -83,7 +80,7 @@ jobs:
         if: steps.inspect.outputs.already_safe != 'true'
         run: |
           mkdir -p /tmp/eagler-verify
-          java -jar /tmp/EaglerBinaryTools.jar epkdecompiler             "${CLIENT_ASSET}"             /tmp/eagler-verify
+          java -jar /tmp/EaglerBinaryTools.jar epkdecompiler "${CLIENT_ASSET}" /tmp/eagler-verify
 
           mapfile -t VERIFY_SPLASHES < <(find /tmp/eagler-verify -type f -name 'splashes.txt' -print)
           if [ "${#VERIFY_SPLASHES[@]}" -ne 1 ]; then
