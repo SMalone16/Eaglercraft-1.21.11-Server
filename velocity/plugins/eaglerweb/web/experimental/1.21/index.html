@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Experimental 1.21 Client Slot</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background:#0d1117; color:#e6edf3; margin:0; min-height:100vh; display:grid; place-items:center; }
+    main { width:min(680px, calc(100% - 40px)); background:#161b22; border:1px solid #30363d; border-radius:16px; padding:32px; }
+    a { color:#58a6ff; }
+    .button { display:inline-block; margin-top:12px; background:#1f6feb; color:white; text-decoration:none; padding:11px 16px; border-radius:8px; font-weight:700; }
+    code { background:#21262d; padding:2px 6px; border-radius:5px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Experimental 1.21 browser-client slot</h1>
+    <p>This path is intentionally empty of game binaries until a reproducible 1.21.x Eagler protocol-v5 client passes classroom testing.</p>
+    <p>Keeping it separate lets us test a future client against the same Velocity/EaglerXServer endpoint without risking <code>/js/</code>.</p>
+    <a class="button" href="/js/">Return to stable client</a>
+  </main>
+</body>
+</html>
