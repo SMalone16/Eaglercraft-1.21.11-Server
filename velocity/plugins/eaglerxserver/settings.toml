@@ -26,8 +26,7 @@ http_websocket_compression_level = 6
 # Default value is 65536, sets the size limit for websocket frames before a frame
 # is split into multiple fragments
 http_websocket_fragment_size = 65536
-# Default value is 2097151, sets the max size for websocket frames
-http_websocket_max_frame_length = 2097151
+# Upstream v1.1.1 recommends reducing the old ~2 MiB default by at least 10x.\n# 192 KiB remains well above normal inbound game frames while limiting allocation risk.\nhttp_websocket_max_frame_length = 196608
 # Default value is false, can be used to make EaglerXServer "intervene" when it
 # detects a connection about to time out due to inactivity, by sending a WebSocket
 # ping frame to try and get a response from the client. Chrome has been shown to
