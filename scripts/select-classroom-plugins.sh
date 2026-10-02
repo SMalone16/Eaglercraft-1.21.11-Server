@@ -27,7 +27,7 @@ declare -A PLUGIN_SELECTED=()
 
 while IFS='|' read -r id display_name repository branch jar_path default_enabled legacy_prefix; do
   [ -z "${id:-}" ] && continue
-  [[ "$id" == #* ]] && continue
+  [ "${id:0:1}" = "#" ] && continue
 
   if [[ ! "$id" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
     echo "ERROR: Invalid plugin id '$id' in $CATALOG_FILE" >&2
