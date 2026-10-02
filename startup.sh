@@ -12,7 +12,7 @@ echo "============================================================"
 echo " Eaglercraft Classroom Server"
 echo "============================================================"
 
-for command_name in java curl; do
+for command_name in java jar curl; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
     echo "ERROR: $command_name is required."
     exit 1
@@ -25,13 +25,11 @@ if [ ! -f "$VELOCITY_JAR" ]; then
 fi
 
 echo
-echo "Installing/verifying pinned proxy and translation dependencies..."
-bash "$ROOT_DIR/scripts/install-managed-dependencies.sh"
+bash "$ROOT_DIR/scripts/select-classroom-plugins.sh"
 
 echo
-echo "Removing retired EaglerSoccer plugin artifacts, if present..."
-rm -f "$ROOT_DIR"/server/plugins/EaglerSoccer*.jar
-rm -rf "$ROOT_DIR/server/plugins/EaglerSoccer"
+echo "Installing/verifying pinned proxy and translation dependencies..."
+bash "$ROOT_DIR/scripts/install-managed-dependencies.sh"
 
 echo
 echo "Validating classroom stack topology..."
@@ -67,11 +65,6 @@ if [ ! -f "$PAPER_JAR" ]; then
     -o "$PAPER_JAR"
 
   echo "Paper downloaded."
-fi
-
-classroom_plugin="$ROOT_DIR/server/plugins/LuckyChests-1.0.0.jar"
-if [ ! -f "$classroom_plugin" ]; then
-  echo "WARNING: Optional classroom plugin is missing: $(basename "$classroom_plugin")"
 fi
 
 VELOCITY_PID=""
