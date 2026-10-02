@@ -22,7 +22,7 @@ http_max_content_length = 65536
 # websocket frames, set to 0 to disable if HTTP compression is already handled
 # through a reverse proxy. You almost definitely need some level of compression
 # for the game to be playable on WiFi networks.
-http_websocket_compression_level = 6
+http_websocket_compression_level = 3
 # Default value is 65536, sets the size limit for websocket frames before a frame
 # is split into multiple fragments
 http_websocket_fragment_size = 65536
@@ -163,7 +163,7 @@ debug_log_client_brands = false
 	skin_cache_db_sqlite_compatible = true
 	# Default value is -1, sets the number of threads to use for database queries and
 	# compression. Set to -1 to use all available processors.
-	skin_cache_thread_count = -1
+	skin_cache_thread_count = 1
 	# Default value is 6, sets the compression level to use for the skin cache
 	# database, value can be between 0-9.
 	skin_cache_compression_level = 6
