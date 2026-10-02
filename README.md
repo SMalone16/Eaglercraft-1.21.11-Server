@@ -69,7 +69,7 @@ Paper
 
 Via* is deliberately absent from Velocity because TuffXPlus requires ViaVersion/ViaBackwards on the backend server. The deprecated standalone `TuffX.jar` is also removed.
 
-The classroom-specific LuckyChests JAR remains repository-managed by its GitHub sync workflow. **EaglerSoccer is intentionally not part of the classroom build**; its sync workflow and JAR were removed, and `startup.sh` deletes any stale EaglerSoccer JAR/data left in an older Codespace before Paper starts.
+Classroom/student project plugins are **session-managed**. When `startup.sh` runs interactively, it shows a plugin picker and downloads only the project plugins selected for that test session. The core Eagler/Via/TuffXPlus compatibility stack is separate and remains enabled automatically. Plugin data folders are preserved when a project plugin is disabled, so a plugin can be turned off for debugging and re-enabled later without losing its configuration.
 
 ---
 
@@ -103,6 +103,8 @@ Open the Codespaces Terminal and run:
 bash startup.sh
 ```
 
+Before the server launches, the **Classroom Plugin Lab** picker appears. Toggle the student/classroom plugins you want for this session, choose **START SERVER**, and only those selected project JARs are loaded by Paper. Plugins whose compiled `dist/` JAR is not available yet are shown as unavailable instead of crashing startup.
+
 The script starts:
 
 ```text
@@ -116,9 +118,11 @@ Classroom world
 ```
 
 On the first launch, the script:
-1. downloads/verifies the pinned EaglerXServer, EaglerWeb, EaglerXRewind, Via*, and TuffXPlus releases;
-2. runs a stack smoke test to reject duplicate/incorrect plugin placement; and
-3. downloads the latest stable official Paper 1.21.11 runnable server JAR if it is missing.
+1. lets the teacher choose the classroom project plugins for the session;
+2. downloads/verifies the selected project JARs from their GitHub repositories;
+3. downloads/verifies the pinned EaglerXServer, EaglerWeb, EaglerXRewind, Via*, and TuffXPlus releases;
+4. runs a stack smoke test to reject duplicate/incorrect plugin placement; and
+5. downloads the latest stable official Paper 1.21.11 runnable server JAR if it is missing.
 
 Wait until Paper prints its normal **Done** message before students join.
 
@@ -201,6 +205,8 @@ Open your Codespace and run:
 ```bash
 bash startup.sh
 ```
+
+Choose the plugin combination you want to test in the Classroom Plugin Lab menu. The previous session's selection is remembered, so normally you only need to toggle whatever changed.
 
 Then verify that **25567 is Public** in the PORTS tab.
 
@@ -286,17 +292,67 @@ Restart the server afterward.
 
 ---
 
-# Installing Classroom Plugins
+# Classroom Plugin Test Sessions
 
-Paper plugins belong in:
+The server has a session plugin picker specifically for student mod/plugin testing. Paper calls these **plugins** rather than Fabric/Forge-style mods, but the classroom workflow is the same idea: choose exactly which projects should run for this server session.
 
-```text
-server/plugins/
+Run:
+
+```bash
+bash startup.sh
 ```
 
-For student coding projects, target the **Paper 1.21.11 API**.
+The terminal shows a menu similar to:
 
-The production `/js/` browser client remains the existing stock 1.12.2 build. TuffXPlus exposes modern blocks, entities, world depth, swimming, and related features when a compatible TuffClient-style browser build is used; it does not turn the stock `/js/` executable into a modern Minecraft client. Test client-dependent features in `/modern/` before promoting them for class use.
+```text
+Classroom Plugin Lab
+ 1) [x] Lucky Chests                 READY
+ 2) [ ] Eagler Soccer                READY
+ 3) [ ] Eagler Zombies Fall 2026     NOT BUILT / UNAVAILABLE
+
+ a) enable every READY plugin
+ n) disable all classroom plugins
+ r) refresh build availability
+ s) START SERVER with this selection
+ q) cancel startup
+```
+
+The current catalog lives at:
+
+```text
+classroom/plugins.conf
+```
+
+Each line identifies the menu id, display name, GitHub repository, branch, compiled JAR path, first-run default, and any old JAR prefix that should be cleaned up. Current projects are:
+
+| Menu id | Repository | First-run default |
+|---|---|---|
+| `luckychests` | `SMalone16/LuckyChests1.21` | On |
+| `soccer` | `SMalone16/EaglerSoccer` | Off |
+| `zombies` | `SMalone16/EaglerZombiesFall26` | Off |
+
+The picker checks whether each configured `dist/` JAR is actually downloadable. A repo can therefore be listed before the plugin is finished; it simply stays unavailable until that compiled JAR exists.
+
+Selected JARs are installed with standardized runtime names such as:
+
+```text
+server/plugins/classroom-session-soccer.jar
+```
+
+At the start of each session, all previously session-managed JARs are removed and only the newly selected set is installed. **Plugin data/config folders are not deleted.** This makes it safe to disable a broken plugin, run the base server or another project by itself, and return to the disabled plugin later.
+
+For scripted/non-interactive startup, you can bypass the menu:
+
+```bash
+CLASSROOM_PLUGINS=none bash startup.sh
+CLASSROOM_PLUGINS=soccer bash startup.sh
+CLASSROOM_PLUGINS=luckychests,soccer bash startup.sh
+CLASSROOM_PLUGINS=all bash startup.sh
+```
+
+To add another student project, have its repository publish a Paper 1.21.11 / Java 21 JAR into `dist/`, then add one line to `classroom/plugins.conf`. No startup-script rewrite is required as the class grows toward ten or more projects.
+
+For student coding projects, target the **Paper 1.21.11 API**. The production `/js/` browser client remains the existing stock 1.12.2 build. TuffXPlus exposes modern blocks, entities, world depth, swimming, and related features when a compatible TuffClient-style browser build is used; it does not turn the stock `/js/` executable into a modern Minecraft client. Test client-dependent features in `/modern/` before promoting them for class use.
 
 ---
 
@@ -430,10 +486,16 @@ server/server.properties
 World settings, class size, difficulty, game mode, etc.
 
 ```text
+classroom/plugins.conf
+```
+
+Catalog of student/classroom plugin repositories shown in the startup picker.
+
+```text
 server/plugins/
 ```
 
-Paper plugins and student-created server plugins.
+Paper plugin runtime directory. Session-managed student JARs are placed here automatically; avoid manually copying duplicate project JARs into this folder.
 
 ```text
 velocity/plugins/eaglerxserver/listeners.toml

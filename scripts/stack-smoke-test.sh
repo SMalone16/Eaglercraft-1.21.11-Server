@@ -13,6 +13,8 @@ fail() {
 
 bash -n startup.sh
 bash -n scripts/install-managed-dependencies.sh
+bash -n scripts/select-classroom-plugins.sh
+[ -f classroom/plugins.conf ] || fail "classroom plugin catalog is missing"
 
 [ -f velocity/plugins/eaglerweb/web/js/index.html ] || fail "stable /js/ client is missing"
 grep -q 'Eaglercraft 1.12.2' velocity/plugins/eaglerweb/web/js/index.html || fail "stable /js/ client no longer identifies as 1.12.2"
@@ -24,10 +26,17 @@ if compgen -G 'velocity/plugins/Via*.jar' >/dev/null; then
 fi
 [ ! -e server/plugins/TuffX.jar ] || fail "deprecated TuffX.jar must not be installed beside TuffXPlus"
 
-if compgen -G 'server/plugins/EaglerSoccer*.jar' >/dev/null; then
-  fail "retired EaglerSoccer plugin must not be present in the classroom server build"
+# Classroom project plugins are installed under a standardized runtime name by
+# select-classroom-plugins.sh. Legacy direct copies would bypass session control.
+if compgen -G 'server/plugins/LuckyChests*.jar' >/dev/null; then
+  fail "legacy LuckyChests JAR found; classroom plugins must be session-managed"
 fi
-[ ! -d server/plugins/EaglerSoccer ] || fail "retired EaglerSoccer plugin data directory must not be present"
+if compgen -G 'server/plugins/EaglerSoccer*.jar' >/dev/null; then
+  fail "legacy EaglerSoccer JAR found; classroom plugins must be session-managed"
+fi
+if compgen -G 'server/plugins/EaglerZombiesFall26*.jar' >/dev/null; then
+  fail "legacy EaglerZombiesFall26 JAR found; classroom plugins must be session-managed"
+fi
 
 grep -q 'http_websocket_max_frame_length = 196608' velocity/plugins/eaglerxserver/settings.toml ||
   fail "EaglerXServer WebSocket frame limit is not hardened"
@@ -45,6 +54,11 @@ managed_jars=(
 for jar_file in "${managed_jars[@]}"; do
   [ -f "$jar_file" ] || fail "managed JAR missing: $jar_file"
   jar tf "$jar_file" >/dev/null || fail "invalid JAR archive: $jar_file"
+done
+
+for jar_file in server/plugins/classroom-session-*.jar; do
+  [ -e "$jar_file" ] || continue
+  jar tf "$jar_file" >/dev/null || fail "invalid classroom session JAR: $jar_file"
 done
 
 echo "Stack smoke test passed."

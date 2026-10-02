@@ -17,7 +17,13 @@ server/plugins/ViaBackwards-*.jar
 server/plugins/ViaRewind-*.jar
 server/plugins/TuffX.jar
 server/plugins/TuffXPlus-*.jar
+
+# Session-managed classroom plugin binaries
+server/plugins/classroom-session-*.jar
+server/plugins/LuckyChests*.jar
 server/plugins/EaglerSoccer*.jar
+server/plugins/EaglerZombiesFall26*.jar
+.classroom-plugin-selection
 
 # Runtime-generated data
 velocity/eagler_skins_cache.db
