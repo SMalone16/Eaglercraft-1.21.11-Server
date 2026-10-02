@@ -16,6 +16,22 @@ bash -n scripts/install-managed-dependencies.sh
 bash -n scripts/select-classroom-plugins.sh
 [ -f classroom/plugins.conf ] || fail "classroom plugin catalog is missing"
 
+grep -q '^network-compression-threshold=-1$' server/server.properties ||
+  fail "Paper backend compression must be disabled behind local Velocity"
+grep -q '^http_websocket_compression_level = 3$' velocity/plugins/eaglerxserver/settings.toml ||
+  fail "EaglerXServer WebSocket compression level should be 3 for classroom CPU efficiency"
+grep -q '^[[:space:]]*skin_cache_thread_count = 1$' velocity/plugins/eaglerxserver/settings.toml ||
+  fail "EaglerXServer skin cache must use one worker thread"
+grep -q '"cpus": 4' .devcontainer/devcontainer.json ||
+  fail "Codespaces should request at least 4 CPU cores"
+grep -q '"memory": "16gb"' .devcontainer/devcontainer.json ||
+  fail "Codespaces should request 16 GB RAM"
+
+[ ! -e server/plugins/ProtocolLib.jar ] || fail "ProtocolLib is not part of the managed classroom stack"
+if compgen -G 'server/plugins/TAB*.jar' >/dev/null; then
+  fail "TAB is not part of the managed classroom stack"
+fi
+
 [ -f velocity/plugins/eaglerweb/web/js/index.html ] || fail "stable /js/ client is missing"
 grep -q 'Eaglercraft 1.12.2' velocity/plugins/eaglerweb/web/js/index.html || fail "stable /js/ client no longer identifies as 1.12.2"
 [ -f velocity/plugins/eaglerweb/web/modern/index.html ] || fail "/modern/ client slot is missing"

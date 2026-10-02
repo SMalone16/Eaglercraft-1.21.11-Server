@@ -8,9 +8,32 @@ PAPER_JAR="$ROOT_DIR/server/server.jar"
 PAPER_VERSION="1.21.11"
 PAPER_USER_AGENT="Eaglercraft-Classroom-Server/2.0 (https://github.com/SMalone16/Eaglercraft-1.21.11-Server)"
 
+CPU_COUNT="$(nproc 2>/dev/null || echo 2)"
+TOTAL_MEM_MB="$(awk '/MemTotal:/ { print int($2 / 1024) }' /proc/meminfo 2>/dev/null || echo 8192)"
+
+if [ "$TOTAL_MEM_MB" -ge 14000 ]; then
+  DEFAULT_VELOCITY_JAVA_OPTS="-Xms256M -Xmx768M -XX:+UseG1GC -XX:+ParallelRefProcEnabled"
+  DEFAULT_PAPER_JAVA_OPTS="-Xms4G -Xmx8G -XX:+UseG1GC -XX:+ParallelRefProcEnabled"
+else
+  DEFAULT_VELOCITY_JAVA_OPTS="-Xms256M -Xmx512M -XX:+UseG1GC -XX:+ParallelRefProcEnabled"
+  DEFAULT_PAPER_JAVA_OPTS="-Xms2G -Xmx5G -XX:+UseG1GC -XX:+ParallelRefProcEnabled"
+fi
+
+VELOCITY_JAVA_OPTS="${VELOCITY_JAVA_OPTS:-$DEFAULT_VELOCITY_JAVA_OPTS}"
+PAPER_JAVA_OPTS="${PAPER_JAVA_OPTS:-$DEFAULT_PAPER_JAVA_OPTS}"
+read -r -a VELOCITY_JAVA_ARGS <<< "$VELOCITY_JAVA_OPTS"
+read -r -a PAPER_JAVA_ARGS <<< "$PAPER_JAVA_OPTS"
+
 echo "============================================================"
 echo " Eaglercraft Classroom Server"
 echo "============================================================"
+echo "Host resources: ${CPU_COUNT} CPU cores, ~${TOTAL_MEM_MB} MB RAM"
+if [ "$CPU_COUNT" -lt 4 ]; then
+  echo "WARNING: This Codespace has fewer than 4 CPU cores. Classroom play may lag."
+  echo "For best results, create a new Codespace using the repository's recommended machine."
+fi
+echo "Paper JVM:    $PAPER_JAVA_OPTS"
+echo "Velocity JVM: $VELOCITY_JAVA_OPTS"
 
 for command_name in java jar curl; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
@@ -82,7 +105,7 @@ trap cleanup EXIT INT TERM
 echo
 echo "Starting Velocity + EaglerXServer on port 25567..."
 cd "$ROOT_DIR/velocity"
-java -jar "$VELOCITY_JAR" &
+java "${VELOCITY_JAVA_ARGS[@]}" -jar "$VELOCITY_JAR" &
 VELOCITY_PID=$!
 
 PROXY_READY=false
@@ -126,7 +149,7 @@ echo "------------------------------------------------------------"
 
 cd "$ROOT_DIR/server"
 set +e
-java -jar "$PAPER_JAR" --nogui
+java "${PAPER_JAVA_ARGS[@]}" -jar "$PAPER_JAR" --nogui
 PAPER_EXIT=$?
 set -e
 

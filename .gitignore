@@ -42,3 +42,7 @@ server/cache/
 *.swo
 *~
 .DS_Store
+
+# Unused legacy packet/UI plugins (not required by the current Eagler/TuffX stack)
+server/plugins/ProtocolLib*.jar
+server/plugins/TAB*.jar
