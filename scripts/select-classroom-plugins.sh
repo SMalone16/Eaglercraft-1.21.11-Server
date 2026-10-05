@@ -277,7 +277,7 @@ install_selected_plugins() {
         exit 1
       fi
 
-      actual_version="$(awk -F: '/^version:/ { gsub(/^[[:space:]'\"'']+|[[:space:]'\"'']+$/, "", $2); print $2; exit }' "$verify_dir/plugin.yml")"
+      actual_version="$(awk -F: '/^version:/ { print $2; exit }' "$verify_dir/plugin.yml" | xargs)"
       rm -rf "$verify_dir"
 
       if [ "$actual_version" != "$expected_version" ]; then
