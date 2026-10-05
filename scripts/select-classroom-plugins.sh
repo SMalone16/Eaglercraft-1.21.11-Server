@@ -19,13 +19,14 @@ declare -A PLUGIN_NAME=()
 declare -A PLUGIN_REPO=()
 declare -A PLUGIN_BRANCH=()
 declare -A PLUGIN_JAR_PATH=()
+declare -A PLUGIN_EXPECTED_VERSION=()
 declare -A PLUGIN_DEFAULT=()
 declare -A PLUGIN_LEGACY_PREFIX=()
 declare -A PLUGIN_URL=()
 declare -A PLUGIN_AVAILABLE=()
 declare -A PLUGIN_SELECTED=()
 
-while IFS='|' read -r id display_name repository branch jar_path default_enabled legacy_prefix; do
+while IFS='|' read -r id display_name repository branch jar_path expected_version default_enabled legacy_prefix; do
   [ -z "${id:-}" ] && continue
   [ "${id:0:1}" = "#" ] && continue
 
@@ -44,6 +45,7 @@ while IFS='|' read -r id display_name repository branch jar_path default_enabled
   PLUGIN_REPO["$id"]="$repository"
   PLUGIN_BRANCH["$id"]="$branch"
   PLUGIN_JAR_PATH["$id"]="$jar_path"
+  PLUGIN_EXPECTED_VERSION["$id"]="$expected_version"
   PLUGIN_DEFAULT["$id"]="$default_enabled"
   PLUGIN_LEGACY_PREFIX["$id"]="$legacy_prefix"
   PLUGIN_URL["$id"]="https://raw.githubusercontent.com/$repository/$branch/$jar_path"
@@ -261,7 +263,40 @@ install_selected_plugins() {
       exit 1
     fi
 
+    expected_version="${PLUGIN_EXPECTED_VERSION[$id]}"
+    if [ -n "$expected_version" ]; then
+      verify_dir="$(mktemp -d)"
+      (
+        cd "$verify_dir"
+        jar xf "$temp" plugin.yml
+      )
+
+      if [ ! -f "$verify_dir/plugin.yml" ]; then
+        rm -rf "$verify_dir" "$temp"
+        echo "ERROR: ${PLUGIN_NAME[$id]} JAR does not contain plugin.yml." >&2
+        exit 1
+      fi
+
+      actual_version="$(awk -F: '/^version:/ { gsub(/^[[:space:]'\"'']+|[[:space:]'\"'']+$/, "", $2); print $2; exit }' "$verify_dir/plugin.yml")"
+      rm -rf "$verify_dir"
+
+      if [ "$actual_version" != "$expected_version" ]; then
+        rm -f "$temp"
+        echo "ERROR: ${PLUGIN_NAME[$id]} version mismatch." >&2
+        echo "Expected: $expected_version" >&2
+        echo "Downloaded JAR reports: ${actual_version:-unknown}" >&2
+        echo "Source: ${PLUGIN_URL[$id]}" >&2
+        exit 1
+      fi
+    fi
+
+    checksum="$(sha256sum "$temp" | awk '{print $1}')"
     mv "$temp" "$target"
+    echo "     source: ${PLUGIN_URL[$id]}"
+    if [ -n "${PLUGIN_EXPECTED_VERSION[$id]}" ]; then
+      echo "     verified plugin version: ${PLUGIN_EXPECTED_VERSION[$id]}"
+    fi
+    echo "     sha256: $checksum"
     installed_count=$((installed_count + 1))
   done
 
