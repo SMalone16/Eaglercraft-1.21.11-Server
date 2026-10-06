@@ -3,14 +3,60 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0">
-		<meta name="description" content="Eaglercraft 1.12 test directory HTML page">
-		<meta name="keywords" content="eaglercraft, eaglercraftx, minecraft, 1.12, 1.12.2">
-		<title>Eaglercraft 1.12.2</title>
+		<meta name="description" content="TigerCraft classroom Minecraft client powered by Eaglercraft 1.12.2">
+		<meta name="keywords" content="tigercraft, eaglercraft, minecraft, classroom, pawling">
+		<title>TigerCraft</title>
 		<meta property="og:locale" content="en-US">
 		<meta property="og:type" content="website">
-		<meta property="og:title" content="Eaglercraft 1.12.2">
-		<meta property="og:description" content="test directory HTML page">
+		<meta property="og:title" content="TigerCraft">
+		<meta property="og:description" content="Pawling Tigers classroom Minecraft server">
 		<link type="image/png" rel="shortcut icon" href="favicon.png">
+		<style>
+			html, body {
+				margin: 0;
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+				background: #05070c;
+			}
+			#game_frame {
+				position: fixed;
+				inset: 0;
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+				background: black;
+			}
+			#tigercraft_splash {
+				position: fixed;
+				inset: 0;
+				z-index: 2147483647;
+				background: #08101f url("tigercraft-splash.svg") center center / cover no-repeat;
+				opacity: 1;
+				transition: opacity 900ms ease;
+				pointer-events: none;
+			}
+			#tigercraft_splash.tc-fade {
+				opacity: 0;
+			}
+			#tigercraft_status {
+				position: absolute;
+				left: 50%;
+				bottom: 28px;
+				transform: translateX(-50%);
+				padding: 8px 13px;
+				border: 2px solid rgba(255, 176, 92, .48);
+				background: rgba(4, 8, 18, .72);
+				color: #ffe2bd;
+				font: 700 13px/1.1 monospace;
+				letter-spacing: 2px;
+				text-transform: uppercase;
+				box-shadow: 0 0 18px rgba(111, 197, 255, .18), 0 0 24px rgba(244, 98, 208, .13);
+			}
+			@media (prefers-reduced-motion: reduce) {
+				#tigercraft_splash { transition: none; }
+			}
+		</style>
 		<script type="text/javascript" src="classes.js"></script>
 		<script type="text/javascript">
 			"use strict";
@@ -26,7 +72,7 @@
 						localesURI: "lang/",
 						worldsDB: "worlds",
 						servers: [
-							{ addr: window.location.origin.replace("https","wss").replace("http","ws"), name: "Classroom Server" }
+							{ addr: window.location.origin.replace("https","wss").replace("http","ws"), name: "TigerCraft" }
 						],
 						relays: [
 							{ addr: "wss://relay.deev.is/", comment: "lax1dude relay #1", primary: relayId == 0 },
@@ -34,8 +80,6 @@
 							{ addr: "wss://relay.shhnowisnottheti.me/", comment: "ayunami relay #1", primary: relayId == 2 }
 						]
 					};
-					
-					// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 					
 					var q = window.location.search;
 					if((typeof q === "string") && q[0] === "?" && (typeof window.URLSearchParams !== "undefined")) {
@@ -45,10 +89,24 @@
 					}
 					
 					main();
-					
+
+					var splash = document.getElementById("tigercraft_splash");
+					if(splash) {
+						window.setTimeout(function() {
+							splash.classList.add("tc-fade");
+							window.setTimeout(function() {
+								if(splash.parentNode) splash.parentNode.removeChild(splash);
+							}, 1000);
+						}, 2400);
+					}
 				}
 			});
 		</script>
 	</head>
-	<body style="margin:0px;width:100%;height:100%;overflow:hidden;background-color:black;" id="game_frame"></body>
+	<body>
+		<div id="game_frame"></div>
+		<div id="tigercraft_splash" role="img" aria-label="TigerCraft: a blocky tiger in an autumn meadow beneath foothills with glowing colorful lights">
+			<div id="tigercraft_status">Loading TigerCraft...</div>
+		</div>
+	</body>
 </html>
