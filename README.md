@@ -118,6 +118,7 @@ The startup menu can currently load classroom project plugins such as:
 - **Eagler Soccer**
 - **Eagler Zombies Fall 2026**
 - **Eagler Locust Fall 2026**
+- **Eagler City**
 
 A plugin can be disabled for one session without deleting its saved data.
 
