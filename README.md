@@ -117,7 +117,12 @@ The startup menu can currently load classroom project plugins such as:
 - **Lucky Chests**
 - **Eagler Soccer**
 - **Eagler Zombies Fall 2026**
+- **Eaglervators**
 - **Eagler Locust Fall 2026**
+- **Triple Jump**
+- **Eagler Airplane**
+- **Huxley's Space**
+- **Eagler Trees**
 - **Eagler City**
 
 A plugin can be disabled for one session without deleting its saved data.
