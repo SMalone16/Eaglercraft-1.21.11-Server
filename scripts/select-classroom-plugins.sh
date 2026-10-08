@@ -182,6 +182,12 @@ set_selection_from_env() {
     none)
       return
       ;;
+    undercity)
+      for id in luckychests zombies city eaglervators; do
+        PLUGIN_SELECTED["$id"]=1
+      done
+      return
+      ;;
     all)
       for id in "${PLUGIN_IDS[@]}"; do
         if [ "${PLUGIN_AVAILABLE[$id]}" = "1" ]; then
@@ -335,6 +341,21 @@ while true; do
   read -r -p "Choice: " choice
 
   case "$choice" in
+    u|U)
+      missing=""
+      for plugin_id in luckychests zombies city eaglervators; do
+        if [ "${PLUGIN_AVAILABLE[$plugin_id]}" != "1" ]; then
+          missing="$missing $plugin_id"
+        fi
+      done
+      if [ -n "$missing" ]; then
+        echo "Undercity preset cannot start until these builds are READY:$missing"
+        read -r -p "Press Enter to continue..." _
+      else
+        for plugin_id in "${PLUGIN_IDS[@]}"; do PLUGIN_SELECTED["$plugin_id"]=0; done
+        for plugin_id in luckychests zombies city eaglervators; do PLUGIN_SELECTED["$plugin_id"]=1; done
+      fi
+      ;;
     a|A)
       for id in "${PLUGIN_IDS[@]}"; do
         if [ "${PLUGIN_AVAILABLE[$id]}" = "1" ]; then
