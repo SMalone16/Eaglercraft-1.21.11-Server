@@ -15,6 +15,14 @@ bash -n startup.sh
 bash -n scripts/install-managed-dependencies.sh
 bash -n scripts/select-classroom-plugins.sh
 
+grep -Fq 'server_icon = "plugins/eaglerxserver/server_icon.png"' velocity/plugins/eaglerxserver/listeners.toml ||
+  fail "EaglerXServer listener icon points to a missing relative path"
+[ -f velocity/plugins/eaglerxserver/server_icon.png ] || fail "EaglerXServer icon file is missing"
+! grep -Fq "economyshopgui:sellall" server/commands.yml ||
+  fail "Remove orphaned sell alias when EconomyShopGUI is not installed"
+grep -Fq 'literal escaped newline in $resource' scripts/select-classroom-plugins.sh ||
+  fail "Classroom JAR installer must reject escaped YAML newlines"
+
 # Regression: the Undercity handler must be VISIBLE, not merely wired in the case statement.
 grep -Fq 'echo " u) UNDERCITY' scripts/select-classroom-plugins.sh ||
   fail "Undercity preset is missing from the displayed startup menu"
