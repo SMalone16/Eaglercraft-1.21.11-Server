@@ -20,7 +20,7 @@ grep -Fq 'server_icon = "plugins/eaglerxserver/server_icon.png"' velocity/plugin
 [ -f velocity/plugins/eaglerxserver/server_icon.png ] || fail "EaglerXServer icon file is missing"
 ! grep -Fq "economyshopgui:sellall" server/commands.yml ||
   fail "Remove orphaned sell alias when EconomyShopGUI is not installed"
-grep -Fq "literal escaped newline in $resource" scripts/select-classroom-plugins.sh ||
+grep -Fq 'literal escaped newline in $resource' scripts/select-classroom-plugins.sh ||
   fail "Classroom JAR installer must reject escaped YAML newlines"
 
 # Regression: the Undercity handler must be VISIBLE, not merely wired in the case statement.
