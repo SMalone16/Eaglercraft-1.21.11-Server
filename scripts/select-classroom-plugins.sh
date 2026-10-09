@@ -271,25 +271,33 @@ install_selected_plugins() {
       exit 1
     fi
 
-    expected_version="${PLUGIN_EXPECTED_VERSION[$id]}"
-    if [ -n "$expected_version" ]; then
-      verify_dir="$(mktemp -d)"
-      (
-        cd "$verify_dir"
-        jar xf "$temp" plugin.yml
-      )
+    # Reject malformed plugin YAML before Paper attempts to load it.
+    verify_dir="$(mktemp -d)"
+    (
+      cd "$verify_dir"
+      jar xf "$temp" plugin.yml config.yml
+    )
+    if [ ! -s "$verify_dir/plugin.yml" ]; then
+      echo "ERROR: ${PLUGIN_NAME[$id]} JAR has no plugin.yml." >&2
+      rm -rf "$verify_dir" "$temp"
+      exit 1
+    fi
 
-      if [ ! -f "$verify_dir/plugin.yml" ]; then
+    local resource
+    for resource in plugin.yml config.yml; do
+      if [ -f "$verify_dir/$resource" ] && grep -Fq '\n' "$verify_dir/$resource"; then
+        echo "ERROR: ${PLUGIN_NAME[$id]} JAR contains a literal escaped newline in $resource." >&2
+        echo "The plugin build must be corrected before launching Paper." >&2
         rm -rf "$verify_dir" "$temp"
-        echo "ERROR: ${PLUGIN_NAME[$id]} JAR does not contain plugin.yml." >&2
         exit 1
       fi
+    done
 
+    expected_version="${PLUGIN_EXPECTED_VERSION[$id]}"
+    if [ -n "$expected_version" ]; then
       actual_version="$(awk -F: '/^version:/ { print $2; exit }' "$verify_dir/plugin.yml" | xargs)"
-      rm -rf "$verify_dir"
-
       if [ "$actual_version" != "$expected_version" ]; then
-        rm -f "$temp"
+        rm -rf "$verify_dir" "$temp"
         echo "ERROR: ${PLUGIN_NAME[$id]} version mismatch." >&2
         echo "Expected: $expected_version" >&2
         echo "Downloaded JAR reports: ${actual_version:-unknown}" >&2
@@ -297,6 +305,7 @@ install_selected_plugins() {
         exit 1
       fi
     fi
+    rm -rf "$verify_dir"
 
     checksum="$(sha256sum "$temp" | awk '{print $1}')"
     mv "$temp" "$target"
