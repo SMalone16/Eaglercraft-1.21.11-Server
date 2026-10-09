@@ -7,6 +7,10 @@ PLUGIN_DIR="$ROOT_DIR/server/plugins"
 STATE_FILE="$ROOT_DIR/.classroom-plugin-selection"
 RUNTIME_PREFIX="classroom-session-"
 
+# A unique URL query avoids serving a previously cached GitHub raw JAR after
+# Actions has published a newer build to the same dist/ filename.
+CACHE_BUSTER="$(date -u +%s)-$"
+
 if [ ! -f "$CATALOG_FILE" ]; then
   echo "ERROR: Classroom plugin catalog is missing: $CATALOG_FILE" >&2
   exit 1
@@ -96,7 +100,8 @@ refresh_availability() {
   echo
   echo "Checking classroom plugin builds from GitHub main..."
   for id in "${PLUGIN_IDS[@]}"; do
-    if curl -L --fail --silent --show-error --head --max-time 8 "${PLUGIN_URL[$id]}" >/dev/null 2>&1; then
+    if curl -L --fail --silent --show-error --head --max-time 8 \
+        -H "Cache-Control: no-cache" "${PLUGIN_URL[$id]}?v=$CACHE_BUSTER" >/dev/null 2>&1; then
       PLUGIN_AVAILABLE["$id"]=1
     else
       PLUGIN_AVAILABLE["$id"]=0
@@ -244,7 +249,7 @@ remove_managed_classroom_jars() {
 install_selected_plugins() {
   remove_managed_classroom_jars
 
-  local id target temp
+  local id target temp expected_version actual_version
   local installed_count=0
   echo
   echo "Preparing classroom plugins for this session..."
@@ -263,7 +268,8 @@ install_selected_plugins() {
     temp="$target.download"
 
     echo "  -> ${PLUGIN_NAME[$id]}"
-    curl -L --fail --show-error --silent --retry 3 --retry-delay 1       "${PLUGIN_URL[$id]}" -o "$temp"
+    curl -L --fail --show-error --silent --retry 3 --retry-delay 1 \
+      -H "Cache-Control: no-cache" "${PLUGIN_URL[$id]}?v=$CACHE_BUSTER" -o "$temp"
 
     if ! jar tf "$temp" >/dev/null 2>&1; then
       rm -f "$temp"
@@ -293,9 +299,9 @@ install_selected_plugins() {
       fi
     done
 
+    actual_version="$(awk -F: '/^version:/ { print $2; exit }' "$verify_dir/plugin.yml" | xargs)"
     expected_version="${PLUGIN_EXPECTED_VERSION[$id]}"
     if [ -n "$expected_version" ]; then
-      actual_version="$(awk -F: '/^version:/ { print $2; exit }' "$verify_dir/plugin.yml" | xargs)"
       if [ "$actual_version" != "$expected_version" ]; then
         rm -rf "$verify_dir" "$temp"
         echo "ERROR: ${PLUGIN_NAME[$id]} version mismatch." >&2
@@ -310,6 +316,7 @@ install_selected_plugins() {
     checksum="$(sha256sum "$temp" | awk '{print $1}')"
     mv "$temp" "$target"
     echo "     source: ${PLUGIN_URL[$id]}"
+    echo "     loaded plugin version: ${actual_version:-unknown}"
     if [ -n "${PLUGIN_EXPECTED_VERSION[$id]}" ]; then
       echo "     verified plugin version: ${PLUGIN_EXPECTED_VERSION[$id]}"
     fi
