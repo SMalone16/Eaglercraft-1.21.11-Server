@@ -2,6 +2,61 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Existing Codespaces do not automatically receive merges to GitHub main.
+# Before reading the session plugin catalog, update this checkout safely.
+# Never force-reset, switch branches, or overwrite an educator's local edits.
+update_classroom_checkout() {
+  if [ "${CLASSROOM_AUTO_UPDATE:-1}" = "0" ]; then
+    echo "Automatic server-source update disabled (CLASSROOM_AUTO_UPDATE=0)."
+    return 0
+  fi
+  if ! command -v git >/dev/null 2>&1 || ! git -C "$ROOT_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "Not a Git checkout; using installed server files."
+    return 0
+  fi
+  local branch
+  branch="$(git -C "$ROOT_DIR" symbolic-ref --short -q HEAD || true)"
+  if [ "$branch" != "main" ]; then
+    echo "Source update skipped: current branch is '${branch:-detached HEAD}', not main."
+    return 0
+  fi
+  if ! git -C "$ROOT_DIR" remote get-url origin >/dev/null 2>&1; then
+    echo "Source update skipped: origin remote is not configured."
+    return 0
+  fi
+
+  echo "Checking GitHub main for classroom server updates..."
+  if ! GIT_TERMINAL_PROMPT=0 timeout 20 git -C "$ROOT_DIR" fetch --quiet origin main; then
+    echo "WARNING: Could not check GitHub; using local checkout."
+    return 0
+  fi
+
+  local current remote base
+  current="$(git -C "$ROOT_DIR" rev-parse HEAD)"
+  remote="$(git -C "$ROOT_DIR" rev-parse refs/remotes/origin/main)"
+  [ "$current" != "$remote" ] || { echo "Classroom server checkout is current."; return 0; }
+  base="$(git -C "$ROOT_DIR" merge-base HEAD origin/main || true)"
+  if [ "$base" != "$current" ]; then
+    echo "WARNING: Local branch has additional/divergent commits. Not overwriting your work."
+    echo "Review with: git log --oneline --graph --left-right main...origin/main"
+    return 0
+  fi
+  if ! git -C "$ROOT_DIR" diff --quiet || ! git -C "$ROOT_DIR" diff --cached --quiet; then
+    echo "WARNING: GitHub has a new server update, but tracked files have local changes."
+    echo "The update was NOT applied. Back up/reconcile local edits before updating."
+    echo "To inspect: git status --short"
+    return 0
+  fi
+  if git -C "$ROOT_DIR" merge --ff-only --quiet origin/main; then
+    echo "Updated classroom server files to latest GitHub main."
+  else
+    echo "WARNING: Could not fast-forward (possibly untracked file conflict)."
+    echo "Local files were preserved. Inspect: git status --short"
+  fi
+}
+
+update_classroom_checkout
 VELOCITY_JAR="$ROOT_DIR/velocity/velocity-3.5.0-all.jar"
 PAPER_JAR="$ROOT_DIR/server/server.jar"
 
