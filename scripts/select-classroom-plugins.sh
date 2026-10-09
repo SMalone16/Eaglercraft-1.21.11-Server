@@ -94,7 +94,7 @@ load_saved_selection() {
 refresh_availability() {
   local id
   echo
-  echo "Checking classroom plugin builds..."
+  echo "Checking classroom plugin builds from GitHub main..."
   for id in "${PLUGIN_IDS[@]}"; do
     if curl -L --fail --silent --show-error --head --max-time 8 "${PLUGIN_URL[$id]}" >/dev/null 2>&1; then
       PLUGIN_AVAILABLE["$id"]=1
@@ -112,6 +112,7 @@ print_menu() {
   echo
   echo "Core server/compatibility plugins stay enabled automatically."
   echo "Toggle only the student/classroom plugins you want to test."
+  echo "Select u for the full four-plugin Undercity adventure."
   echo
 
   local index=1
@@ -131,6 +132,7 @@ print_menu() {
   done
 
   echo
+  echo " u) UNDERCITY - City + Zombies + Lucky Chests + Eaglervators"
   echo " a) enable every READY plugin"
   echo " n) disable all classroom plugins"
   echo " r) refresh build availability"

@@ -26,6 +26,8 @@ In the Codespace terminal, run:
 bash startup.sh
 ```
 
+The startup script now checks GitHub `main` for safe fast-forward updates **before** displaying the plugin picker. It never resets a branch or overwrites local changes; set `CLASSROOM_AUTO_UPDATE=0` to disable the check.
+
 A **Classroom Plugin Lab** menu will appear.
 
 Use the number keys to turn student plugins on or off, then choose **START SERVER**.
@@ -176,3 +178,17 @@ Choose **u) UNDERCITY preset** at the classroom plugin selector to enable just *
 - **Eaglervators** provides a city/Undercity up-and-down bubble lift facing the temple entrance, while retaining standalone cliff elevator behavior.
 
 **Important:** The Eaglercraft 1.12.2 client does not support guaranteed server-side player skin substitution. Infection instead uses a following zombie avatar and invisible player, preserving armor/held items. Its local inventory screen may still open, but edits are blocked by the server. Verify water-column movement, door mechanics, and client visuals in-game after deployment. The underground cavern can alter existing terrain and should first be tested in a backup of the classroom world. Plugin runtime JARs are published to each plugin repo's `dist/` folder by their GitHub Actions **after merges to main**.
+
+### Existing Codespace missing the Undercity option?
+
+A GitHub merge does **not** automatically update a Codespace that is already open. If your menu has no `u) UNDERCITY` entry, safely stop Paper (`stop` in its console), then run these commands in the **Codespace terminal in the server repository**:
+
+```bash
+git status --short
+git pull --ff-only origin main
+bash startup.sh
+```
+
+If the pull refuses because files are modified, do not use `git reset --hard` or delete the Codespace. Preserve its world and local edits first. Once the updated `startup.sh` has been pulled, future server starts will check for a safe fast-forward automatically. At the interactive menu press **u**, confirm all four mods are marked `[x]`, then press **s** to start; only selected plugins are installed. For a noninteractive terminal, run `CLASSROOM_PLUGINS=undercity bash startup.sh`. Existing world data is not synchronized to GitHub by this update; take a separate backup before allowing Undercity generation.
+
+If the plugin selector says `NOT BUILT / UNAVAILABLE`, that indicates a download/build availability problem; inspect the URL printed by the selector rather than continuing with an incomplete set.

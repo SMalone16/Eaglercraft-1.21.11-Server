@@ -14,6 +14,18 @@ fail() {
 bash -n startup.sh
 bash -n scripts/install-managed-dependencies.sh
 bash -n scripts/select-classroom-plugins.sh
+
+# Regression: the Undercity handler must be VISIBLE, not merely wired in the case statement.
+grep -Fq 'echo " u) UNDERCITY' scripts/select-classroom-plugins.sh ||
+  fail "Undercity preset is missing from the displayed startup menu"
+grep -Fq "    u|U)" scripts/select-classroom-plugins.sh ||
+  fail "Undercity menu selection handler is missing"
+grep -Fq "    undercity)" scripts/select-classroom-plugins.sh ||
+  fail "Undercity environment preset is missing"
+for required_id in city zombies luckychests eaglervators; do
+  grep -q "^$required_id|" classroom/plugins.conf ||
+    fail "Undercity preset plugin $required_id is missing from catalog"
+done
 [ -f classroom/plugins.conf ] || fail "classroom plugin catalog is missing"
 
 grep -q '^network-compression-threshold=-1$' server/server.properties ||
