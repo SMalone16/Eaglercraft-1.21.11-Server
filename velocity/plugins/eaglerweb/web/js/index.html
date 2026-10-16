@@ -60,6 +60,17 @@
 		<script type="text/javascript" src="classes.js"></script>
 		<script type="text/javascript">
 			"use strict";
+			var splashHidden = false;
+			function hideTigerCraftSplash() {
+				if (splashHidden) return;
+				var splash = document.getElementById("tigercraft_splash");
+				if (!splash) return;
+				splashHidden = true;
+				splash.classList.add("tc-fade");
+				window.setTimeout(function() {
+					if (splash.parentNode) splash.parentNode.removeChild(splash);
+				}, 1000);
+			}
 			window.addEventListener("load", function() {
 				if(window.location.href.indexOf("file:") === 0) {
 					alert("HTTP please, do not open this file locally, run a local HTTP server and load it via HTTP");
@@ -71,6 +82,17 @@
 						assetsURI: "assets.epk",
 						localesURI: "lang/",
 						worldsDB: "worlds",
+						// Skip the optional client boot menu for the classroom.
+						allowBootMenu: false,
+						showBootMenuOnLaunch: false,
+						hooks: {
+							screenChanged: function(screenName) {
+								// Retain the branded overlay over internal Eaglercraft logos.
+								if (/(?:main.?menu|title.?screen)/i.test(String(screenName))) {
+									window.setTimeout(hideTigerCraftSplash, 450);
+								}
+							}
+						},
 						servers: [
 							{ addr: window.location.origin.replace("https","wss").replace("http","ws"), name: "TigerCraft" }
 						],
@@ -90,15 +112,9 @@
 					
 					main();
 
-					var splash = document.getElementById("tigercraft_splash");
-					if(splash) {
-						window.setTimeout(function() {
-							splash.classList.add("tc-fade");
-							window.setTimeout(function() {
-								if(splash.parentNode) splash.parentNode.removeChild(splash);
-							}, 1000);
-						}, 2400);
-					}
+					// Fallback if this compiled client does not emit screenChanged.
+					// Never trap students permanently behind the splash.
+					window.setTimeout(hideTigerCraftSplash, 18000);
 				}
 			});
 		</script>

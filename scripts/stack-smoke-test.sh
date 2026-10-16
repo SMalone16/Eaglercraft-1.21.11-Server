@@ -38,6 +38,14 @@ done
 
 grep -q '^network-compression-threshold=-1$' server/server.properties ||
   fail "Paper backend compression must be disabled behind local Velocity"
+grep -q '^pvp=false$' server/server.properties ||
+  fail "Classroom PvP must default to disabled"
+grep -q '"name": "Malone"' server/ops.json ||
+  fail "Default operator Malone is missing"
+grep -q '"uuid": "1f2cc1e1-e3bc-3db6-922b-5410d78b2ad2"' server/ops.json ||
+  fail "Default operator Malone has the wrong offline-mode UUID"
+grep -q 'screenChanged: function(screenName)' velocity/plugins/eaglerweb/web/js/index.html ||
+  fail "TigerCraft splash must wait for client main-menu callback"
 grep -q '^http_websocket_compression_level = 3$' velocity/plugins/eaglerxserver/settings.toml ||
   fail "EaglerXServer WebSocket compression level should be 3 for classroom CPU efficiency"
 grep -q '^[[:space:]]*skin_cache_thread_count = 1$' velocity/plugins/eaglerxserver/settings.toml ||
