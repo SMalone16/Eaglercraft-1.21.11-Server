@@ -70,21 +70,27 @@ That's it.
 
 ---
 
-## Become a server operator
+## Classroom defaults and operator permissions
 
-After you join the world, type this in the server terminal:
+PvP is **disabled by default** (`pvp=false` in `server/server.properties`), and **Malone** is preconfigured as a level-4 operator in `server/ops.json` using the standard offline-mode UUID. If an existing world or proxy assigns `Malone` a different UUID, check and correct operator status from the server terminal after login (`op Malone`).
+
+**Security warning:** This server does **not authenticate usernames**. **Anyone with the public classroom link can log in as `Malone` and receive administrator permissions.** Only use this auto-op convenience after securing access and adding account authentication. A public Codespaces port is accessible to people outside school.
+
+To grant another trusted teacher operator permissions after login, type in the **Paper console**:
 
 ```text
 op YourMinecraftUsername
 ```
-
-You now have teacher/admin permissions.
 
 To remove operator permissions:
 
 ```text
 deop YourMinecraftUsername
 ```
+
+### TigerCraft startup screen
+
+The production `/js/` page retains the TigerCraft image on screen until the client reports that its main menu has loaded, covering the original Eaglercraft startup logos. The optional boot menu is disabled. An 18-second fallback prevents permanent blocking if the client lacks the callback. The Eaglercraft logos are **masked, not removed from the compiled game**, so a slow/unusual client may still briefly show a built-in screen. The compiled game and `/wasm/` client are unchanged.
 
 ## Start class another day
 
