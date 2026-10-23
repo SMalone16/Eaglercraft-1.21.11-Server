@@ -69,16 +69,21 @@ download_verified "EaglerXRewind $EAGLERX_VERSION" "$EAGLERX_REWIND_URL" "$EAGLE
 rm -f "$VELOCITY_PLUGINS"/ViaVersion*.jar "$VELOCITY_PLUGINS"/ViaBackwards*.jar "$VELOCITY_PLUGINS"/ViaRewind*.jar
 rm -f "$VELOCITY_PLUGINS"/EaglerXSupervisor.jar
 
-# Remove the deprecated TuffX plugin and stale managed backend versions.
+# Only remove the deprecated plugin now. Retain the currently working Via
+# versions until every new checksum-verified JAR has downloaded successfully.
 rm -f "$PAPER_PLUGINS/TuffX.jar"
-remove_other_versions "$PAPER_PLUGINS/ViaVersion-$VIAVERSION_VERSION.jar" "$PAPER_PLUGINS"/ViaVersion-*.jar
-remove_other_versions "$PAPER_PLUGINS/ViaBackwards-$VIAVERSION_VERSION.jar" "$PAPER_PLUGINS"/ViaBackwards-*.jar
-remove_other_versions "$PAPER_PLUGINS/ViaRewind-$VIAREWIND_VERSION.jar" "$PAPER_PLUGINS"/ViaRewind-*.jar
-remove_other_versions "$PAPER_PLUGINS/TuffXPlus-$TUFFXPLUS_VERSION.jar" "$PAPER_PLUGINS"/TuffXPlus-*.jar
 
 download_verified "ViaVersion $VIAVERSION_VERSION" "$VIAVERSION_URL" "$VIAVERSION_SHA256" "$PAPER_PLUGINS/ViaVersion-$VIAVERSION_VERSION.jar"
 download_verified "ViaBackwards $VIAVERSION_VERSION" "$VIABACKWARDS_URL" "$VIABACKWARDS_SHA256" "$PAPER_PLUGINS/ViaBackwards-$VIAVERSION_VERSION.jar"
 download_verified "ViaRewind $VIAREWIND_VERSION" "$VIAREWIND_URL" "$VIAREWIND_SHA256" "$PAPER_PLUGINS/ViaRewind-$VIAREWIND_VERSION.jar"
 download_verified "TuffXPlus $TUFFXPLUS_VERSION" "$TUFFXPLUS_URL" "$TUFFXPLUS_SHA256" "$PAPER_PLUGINS/TuffXPlus-$TUFFXPLUS_VERSION.jar"
+
+# Commit the upgrade only after downloads and SHA-256 verification succeed.
+# Old versions are deliberately retained if a download fails; no world data
+# is touched by these operations.
+remove_other_versions "$PAPER_PLUGINS/ViaVersion-$VIAVERSION_VERSION.jar" "$PAPER_PLUGINS"/ViaVersion-*.jar
+remove_other_versions "$PAPER_PLUGINS/ViaBackwards-$VIAVERSION_VERSION.jar" "$PAPER_PLUGINS"/ViaBackwards-*.jar
+remove_other_versions "$PAPER_PLUGINS/ViaRewind-$VIAREWIND_VERSION.jar" "$PAPER_PLUGINS"/ViaRewind-*.jar
+remove_other_versions "$PAPER_PLUGINS/TuffXPlus-$TUFFXPLUS_VERSION.jar" "$PAPER_PLUGINS"/TuffXPlus-*.jar
 
 echo "Managed dependencies are ready."

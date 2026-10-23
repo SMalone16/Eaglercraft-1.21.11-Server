@@ -217,3 +217,16 @@ untouched. Mine around Y=-58/-59 to test for diamonds.
 This is an *experimental classroom client*, not a verified production
 replacement. See [Full-depth mining](docs/TECHNICAL.md#full-depth-mining-for-112-browser-clients)
 for validation and troubleshooting instructions.
+
+### Black void, missing blocks, or phantom mobs?
+
+A mob visible in empty black space may indicate a **chunk rendering problem**
+rather than a mob-spawning failure. The latest stable ViaVersion and
+ViaBackwards fixes are available in the terrain-mapping diagnostic branch;
+these fixes are not a guaranteed cure for TuffClient's negative-Y behavior.
+
+In the live Codespace, run `bash scripts/diagnose-world-mapping.sh` to check
+installed versions, TuffXPlus's generated Y0 config, saved region presence, and
+recent chunk errors **without editing the world**. Compare the same locations
+in `/tuff/` and a native Java 1.21.11 client before touching chunk data.
+See [technical diagnostics](docs/TECHNICAL.md#missing-terrain-black-void-and-below-y0-verification).
