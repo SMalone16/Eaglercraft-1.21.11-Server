@@ -294,3 +294,57 @@ bash startup.sh
 ```
 
 Experimental clients, future protocol stacks, aggressive Paper tuning, and new classroom plugins should be tested without replacing the known-good `/js/` path until they are validated.
+
+---
+
+## Full-depth mining for 1.12 browser clients
+
+**Diagnosis:** This Paper 1.21.11 server uses vanilla `level-type=minecraft\\:normal`
+terrain, with the Overworld's normal bedrock at approximately Y=-64. Spigot also
+sets `below-zero-generation-in-existing-chunks: true`. The world is *not*
+intentionally truncated at Y=0. ViaBackwards translates modern worlds for the
+stable 1.12.2 browser client, whose renderer cannot show blocks below Y=0.
+That includes much of the diamond-rich underground terrain.
+
+TuffXPlus is present in the managed plugin stack, but its below-Y0 feature
+is specifically designed for **TuffClient**, not a standard Eaglercraft
+1.12.2 build. Merely installing the Paper plugin does not extend the stable
+`/js/` client's world height.
+
+### Non-destructive full-depth test
+
+`startup.sh` installs an isolated, pinned official TuffClient 1.1UT15 JS
+build under `/tuff/` (about 27 MB, first launch only). The installer verifies
+the exact upstream Git blob SHA and adds a **TigerCraft (full-depth mining)**
+server-list entry on the same Codespaces origin. It does **not** modify:
+- `/js/`, `/wasm/`, or any other existing browser client;
+- the Paper world, region files, seed, structures, inventories, or ore blocks;
+- ViaVersion, Paper, or TuffXPlus version pins.
+
+From the root Codespaces game URL, choose **Launch Full-Depth TuffClient**,
+then choose the TigerCraft entry. It is a *test client* and should first be
+checked by an operator before classroom rollout. The world stays the same for
+both clients. When functioning correctly, TuffClient + TuffXPlus should show
+the existing caves, deepslate, bedrock, and diamond ore down to Y=-64. A good
+place to test naturally occurring diamonds is around Y=-58/-59.
+
+If a Codespace has no outbound network access or the checksum verification
+fails, `startup.sh` warns and continues running the stable `/js/` client.
+Manually retry from the repository root:
+
+```bash
+bash scripts/install-tuff-client.sh
+```
+
+Set `CLASSROOM_TUFF_AUTO_INSTALL=0` to disable the startup installation check.
+When diagnosing missing negative-Y terrain, confirm `/plugins` lists
+TuffXPlus; inspect `server/plugins/TuffXPlus/config.yml` for
+`y0.y0-enabled: true` and `world` in `y0.enabled-worlds`. Restart Paper
+after changing its config, and test from `/tuff/`, not `/js/`.
+
+**Important:** We intentionally do **not** rewrite the world generator to
+make bedrock appear at Y=0. That could invalidate old chunks, underground
+caves, builds, and the expected ore distribution. Nor does enabling a client
+regenerate previously explored chunks: Paper already generates the negative-Y
+layers. Make a Codespace/world backup before experimental changes and use
+`stop` in the Paper console before stopping the Codespace.

@@ -49,6 +49,13 @@
       <a class="button secondary" href="/wasm/">Alternate 1.12.2 WASM Client</a>
     </div>
 
+    <h2>Full-depth mining test (Y -64)</h2>
+    <p>The 1.21.11 world already extends to bedrock below Y=0, but the stable 1.12.2 browser client cannot display that underground area. <strong>TuffClient</strong> is a separate beta client designed to work with our server's TuffXPlus plugin. Test it with a teacher account before sharing widely.</p>
+    <div class="buttons" id="tuff-client-button" hidden>
+      <a class="button staging" href="/tuff/">Launch Full-Depth TuffClient</a>
+    </div>
+    <p id="tuff-client-missing">If the test client is not installed, run <code>bash scripts/install-tuff-client.sh</code> in your Codespace, then refresh this page.</p>
+
     <h2>Client upgrade slots</h2>
     <p>New browser clients are isolated from the working classroom build. They can be tested against the same server without replacing <code>/js/</code>.</p>
     <div class="buttons">
@@ -56,7 +63,17 @@
       <a class="button experimental" href="/experimental/1.21/">Experimental 1.21 Slot</a>
     </div>
 
-    <p>The game clients automatically connect back to this Codespaces origin, so students do not need to type a server or WebSocket address.</p>
+    <p>The stable client connects to this Codespaces origin automatically. The TuffClient installer adds the same TigerCraft address to its server list.</p>
+    <script>
+      fetch("/tuff/tigercraft-ready.txt", {cache: "no-store"})
+        .then(function(response) { return response.ok ? response.text() : ""; })
+        .then(function(body) {
+          if (!body.startsWith("1.1UT15 dfeba8c1ffa6d935ab9b5ae9f4d4b8ffb884233e")) return;
+          document.getElementById("tuff-client-button").hidden = false;
+          document.getElementById("tuff-client-missing").hidden = true;
+        })
+        .catch(function() {});
+    </script>
   </div>
 </body>
 </html>

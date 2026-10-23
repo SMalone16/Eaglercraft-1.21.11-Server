@@ -110,6 +110,15 @@ echo "Installing/verifying pinned proxy and translation dependencies..."
 bash "$ROOT_DIR/scripts/install-managed-dependencies.sh"
 
 echo
+if [ "${CLASSROOM_TUFF_AUTO_INSTALL:-1}" = "1" ]; then
+  echo "Checking optional full-depth TuffClient browser build..."
+  if ! bash "$ROOT_DIR/scripts/install-tuff-client.sh"; then
+    echo "WARNING: TuffClient could not be installed; /js/ remains available."
+    echo "You can retry with: bash scripts/install-tuff-client.sh"
+  fi
+fi
+
+echo
 echo "Validating classroom stack topology..."
 bash "$ROOT_DIR/scripts/stack-smoke-test.sh"
 

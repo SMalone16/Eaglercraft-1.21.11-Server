@@ -46,3 +46,7 @@ server/cache/
 # Unused legacy packet/UI plugins (not required by the current Eagler/TuffX stack)
 server/plugins/ProtocolLib*.jar
 server/plugins/TAB*.jar
+
+# Optional TuffClient browser files: downloaded and verified at startup.
+/velocity/plugins/eaglerweb/web/tuff/
+/velocity/plugins/eaglerweb/web/.tuff-install.*/

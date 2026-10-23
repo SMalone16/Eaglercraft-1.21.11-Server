@@ -12,6 +12,9 @@ fail() {
 }
 
 bash -n startup.sh
+bash -n scripts/install-tuff-client.sh
+grep -q 'ARCHIVE_GIT_BLOB="dfeba8c1ffa6d935ab9b5ae9f4d4b8ffb884233e"' scripts/install-tuff-client.sh ||
+  fail "Pinned TuffClient JS archive identity changed unexpectedly"
 bash -n scripts/install-managed-dependencies.sh
 bash -n scripts/select-classroom-plugins.sh
 
