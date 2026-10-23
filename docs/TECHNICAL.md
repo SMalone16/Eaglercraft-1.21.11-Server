@@ -348,3 +348,97 @@ caves, builds, and the expected ore distribution. Nor does enabling a client
 regenerate previously explored chunks: Paper already generates the negative-Y
 layers. Make a Codespace/world backup before experimental changes and use
 `stop` in the Paper console before stopping the Codespace.
+
+---
+
+## Missing terrain, black void, and below-Y0 verification
+
+A screenshot showing visible mobs in a black void is **not proof of failed mob
+spawning**; entities can render while the old client receives incomplete chunk
+data. The dimension cannot be established from Y=0 or from nether bricks alone:
+zombies and creepers may indicate the Overworld (including a player-built
+Undercity), while the vanilla Nether normally starts at Y=0. Confirm the
+actual **dimension**, client URL and coordinates before changing any settings.
+
+The original source fork, `lax0dude/Eaglercraft-1.21.11-Server`, last changed
+May 16, 2026 and has no newer fix for this problem. Importantly, the source
+fork bundles BOTH obsolete `TuffX.jar` and `TuffXPlus-1.0.0.jar`, which the
+upstream TuffXPlus maintainer explicitly says **never** to use together.
+This classroom repo correctly retains only TuffXPlus and the three Via*
+backend plugins.
+
+### Version review, October 23, 2026
+
+| Runtime | Stable version in this change | Finding |
+| --- | --- | --- |
+| ViaVersion | 5.12.1 | 5.12.0 → 5.12.1, upstream bug fixes; test old-client packet/registry mapping |
+| ViaBackwards | 5.12.1 | 5.12.0 → 5.12.1, old-client mappings and entity fixes |
+| ViaRewind | 4.2.0 | Already latest stable as inspected; do not change |
+| TuffXPlus | 1.1.1 | Latest **stable** release; 1.1.2-beta exists on upstream `builds/`, not auto-enabled |
+| EaglerXServer / EaglerWeb / EaglerXRewind | 1.1.1 | Already latest stable as inspected; do not change |
+| Paper | 1.21.11 | World generator is already modern; Paper JAR is provisioned on first startup |
+
+Upstream references:
+- https://github.com/ViaVersion/ViaVersion/releases/tag/5.12.1
+- https://github.com/ViaVersion/ViaBackwards/releases/tag/5.12.1
+- https://github.com/TuffNetwork/TuffXPlus/issues/62
+- https://github.com/TuffNetwork/TuffXPlus/issues/53
+- https://github.com/TuffNetwork/TuffXPlus/tree/main/builds
+
+ViaBackwards may warn that older clients cannot see blocks below Y0. This
+warning is expected for **standard** 1.12 clients and *does not alone prove*
+that TuffClient's own `eagler:below_y0` handshake is succeeding or failing.
+
+### Check the live Codespace without editing the world
+
+On the **same Codespace running Paper** (not just GitHub's repository view):
+
+```bash
+bash scripts/diagnose-world-mapping.sh
+```
+
+This reads version pins, locally installed JAR filenames, runtime TuffXPlus
+and ViaBackwards settings, saved-region presence, and recent chunk/packet
+warnings. It does not load or rewrite chunks. World saves and TuffXPlus's
+generated `server/plugins/TuffXPlus/config.yml` are **not tracked by Git**;
+their live content cannot be verified from the repository.
+
+Check that:
+1. `server/plugins/TuffXPlus/config.yml` has `y0.y0-enabled: true` and the
+   actual Overworld name (usually `world`) in `y0.enabled-worlds`; do not
+   automatically enable the Nether or End without testing dimension support.
+2. `server/plugins/ViaBackwards/config.yml` has
+   `bedrock-at-y-0: false`; the synthetic bedrock option can obstruct
+   negative-Y gameplay for older clients.
+3. The client used for the full-depth test is `/tuff/` and its y0 handshake
+   succeeds; `/js/` is the protected stable client, not the full-depth client.
+4. Compare the **same chunk coordinates and dimension** in a real 1.21.11
+   Java client. If Java sees terrain but TuffClient doesn't, investigate
+   TuffXPlus/translation/client chunk handling rather than ore generation.
+5. Compare `/tuff/` with `/js/` only as a diagnostic; the latter cannot
+   display negative-Y Overworld terrain. Report exact block interactions,
+   not just whether mobs look suspended.
+6. Upstream TuffXPlus issue #62 documents ongoing ghost blocks / no block
+   drops for TuffClient UT15 on some 1.21 servers. This has **not** been
+   conclusively fixed in a stable release.
+
+**Do not erase `region/`, create a replacement world, globally shift chunks,
+or turn on synthetic Y0 bedrock as a supposed fix.** Stop Paper cleanly
+and back up the Codespace's actual world before testing any plugin changes.
+The updated Via JAR installer now downloads/checks new JARs before deleting
+older working Via copies, reducing the chance of a partial upgrade.
+
+### Testing in a controlled order
+
+1. Create an off-server backup of `server/world*` and `server/plugins/`
+   including plugin configurations (avoid distributing player data).
+2. Restart with updated ViaVersion/ViaBackwards **5.12.1** and stable
+   TuffXPlus **1.1.1**. Check `/plugins` and server console for load errors.
+3. Compare identical block positions in a native Java 1.21.11 client and
+   `/tuff/`. Check Y=-40 to -59 **in the Overworld** only.
+4. If only TuffClient displays void/ghost blocks, keep the known-good
+   `/js/` available and collect the diagnostic output plus a small redacted
+   log for upstream issue #62. Do not experiment on the only classroom world.
+5. If both Java and TuffClient show missing blocks, investigate saved region
+   files/world generator or student-plugin terrain edits separately; do not
+   infer a packet problem from the screenshot alone.
