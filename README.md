@@ -198,3 +198,22 @@ bash startup.sh
 If the pull refuses because files are modified, do not use `git reset --hard` or delete the Codespace. Preserve its world and local edits first. Once the updated `startup.sh` has been pulled, future server starts will check for a safe fast-forward automatically. At the interactive menu press **u**, confirm all four mods are marked `[x]`, then press **s** to start; only selected plugins are installed. For a noninteractive terminal, run `CLASSROOM_PLUGINS=undercity bash startup.sh`. Existing world data is not synchronized to GitHub by this update; take a separate backup before allowing Undercity generation.
 
 If the plugin selector says `NOT BUILT / UNAVAILABLE`, that indicates a download/build availability problem; inspect the URL printed by the selector rather than continuing with an incomplete set.
+
+---
+
+### Students cannot reach diamond depth?
+
+Paper already generates the full modern Overworld down to Y=-64, but the
+stable Eaglercraft 1.12.2 browser client at `/js/` cannot see the negative-Y
+layers. **TuffXPlus alone does not fix the standard client.**
+
+The server now offers an isolated **TuffClient full-depth mining test** at
+`/tuff/`, with an automatic installer on startup. Open your Codespaces URL
+without `/js/`, choose the TuffClient link once it is available, and select
+**TigerCraft (full-depth mining)** in the multiplayer server list. The stable
+classroom client, all existing worlds, and student inventories remain
+untouched. Mine around Y=-58/-59 to test for diamonds.
+
+This is an *experimental classroom client*, not a verified production
+replacement. See [Full-depth mining](docs/TECHNICAL.md#full-depth-mining-for-112-browser-clients)
+for validation and troubleshooting instructions.
