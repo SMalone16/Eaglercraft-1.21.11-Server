@@ -15,5 +15,12 @@
     "path": "/experimental/1.21/",
     "status": "experimental",
     "policy": "Reserved for reproducible Eagler protocol-v5 clients using a modern Minecraft protocol."
+  },
+  "tuff": {
+    "path": "/tuff/",
+    "minecraftProtocol": 340,
+    "minecraftVersion": "1.12.2 (TuffClient 1.1UT15)",
+    "status": "opt-in test client",
+    "policy": "Installed from pinned upstream build. Below-Y0 TuffXPlus path; keep /js/ unchanged."
   }
 }
