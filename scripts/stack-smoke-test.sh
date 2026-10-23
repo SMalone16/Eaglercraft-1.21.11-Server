@@ -13,6 +13,10 @@ fail() {
 
 bash -n startup.sh
 bash -n scripts/install-tuff-client.sh
+bash -n scripts/diagnose-world-mapping.sh
+[ "$VIAVERSION_VERSION" = "5.12.1" ] || fail "ViaVersion and ViaBackwards should use stable 5.12.1"
+[ "$VIAVERSION_SHA256" = "b8033807e7182c35003a45962352dd642c1e91880ca281da3a43cb6f481a95a2" ] || fail "Unreviewed ViaVersion binary checksum"
+[ "$VIABACKWARDS_SHA256" = "29d94d3a26c85c8a327574b2322db4078992ae457f0173325431a12aac384911" ] || fail "Unreviewed ViaBackwards binary checksum"
 grep -q 'ARCHIVE_GIT_BLOB="dfeba8c1ffa6d935ab9b5ae9f4d4b8ffb884233e"' scripts/install-tuff-client.sh ||
   fail "Pinned TuffClient JS archive identity changed unexpectedly"
 bash -n scripts/install-managed-dependencies.sh
