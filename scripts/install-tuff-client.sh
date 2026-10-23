@@ -115,7 +115,7 @@ bootstrap = """
 """
 index = dest / "index.html"
 html = index.read_text(encoding="utf-8-sig")
-patched, count = re.subn(r"<head\\b[^>]*>", lambda m: m.group(0) + bootstrap,
+patched, count = re.subn(r"<head\b[^>]*>", lambda m: m.group(0) + bootstrap,
                          html, count=1, flags=re.IGNORECASE)
 if count != 1:
     raise SystemExit("TuffClient installer: upstream HTML has no <head> tag")
