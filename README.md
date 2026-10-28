@@ -132,6 +132,7 @@ The startup menu can currently load classroom project plugins such as:
 - **Huxley's Space**
 - **Eagler Trees**
 - **Eagler City**
+- **Theme Park** (opt-in, 70×70 flattened spawn, circular lazy river, elevated coaster, nighttime barrier; **back up your world before its first run**)
 
 A plugin can be disabled for one session without deleting its saved data.
 
